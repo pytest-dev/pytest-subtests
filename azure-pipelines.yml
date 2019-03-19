@@ -9,10 +9,11 @@ jobs:
     vmImage: "vs2017-win2016"
   strategy:
     matrix:
-      pypy:
-        python.version: 'pypy'
-        tox.env: 'pypy'
-        python.exe: 'pypy'
+      # pypy3 is failing because of: https://bitbucket.org/pypy/pypy/issues/2928/invoking-pypy3-v600-by-tox-on-windows-10
+#      pypy:
+#        python.version: 'pypy3'
+#        tox.env: 'pypy3'
+#        python.exe: 'pypy3'
       py34:
         python.version: '3.4'
         tox.env: 'py34'
@@ -34,9 +35,9 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: choco install python.pypy
-    condition: eq(variables['python.exe'], 'pypy')
-    displayName: 'Install pypy'
+  - script: choco install pypy3
+    condition: eq(variables['python.exe'], 'pypy3')
+    displayName: 'Install pypy3'
 
   - task: PowerShell@2
     inputs:

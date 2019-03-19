@@ -13,8 +13,8 @@ matrix:
         env: TOXENV=py36
       - python: '3.7'
         env: TOXENV=py37
-      - python: 'pypy'
-        env: TOXENV=pypy
+      - python: 'pypy3.5-6.0'
+        env: TOXENV=pypy3
       - python: '3.7'
         env: TOXENV=linting
 
@@ -24,3 +24,7 @@ install:
 
 script:
   - tox
+
+cache:
+    directories:
+        - $HOME/.cache/pre-commit
