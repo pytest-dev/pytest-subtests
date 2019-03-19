@@ -10,11 +10,11 @@ pytest-subtests
     :target: https://pypi.org/project/pytest-subtests
     :alt: Python versions
 
-.. image:: https://travis-ci.org/pytest-dev/pytest-subtests.svg?branch=master
+.. image:: https://travis-ci.com/pytest-dev/pytest-subtests.svg?branch=master
     :target: https://travis-ci.org/pytest-dev/pytest-subtests
     :alt: See Build Status on Travis CI
 
-.. image:: https://dev.azure.com/pytest-dev/pytest-subtests/_apis/build/status/pytest-subtests-CI?branchName=master
+.. image:: https://pytest-dev.visualstudio.com/pytest-subtests/_apis/build/status/pytest-dev.pytest-subtests?branchName=master
     :target: https://dev.azure.com/pytest-dev/pytest-subtests
     :alt: See Build Status on Azure
 
