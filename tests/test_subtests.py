@@ -1,64 +1,80 @@
-# -*- coding: utf-8 -*-
+import six
+
+import pytest
+
+pytestmark = pytest.mark.skipif(six.PY2, reason="plugin will be Python 3 only")
 
 
-def test_bar_fixture(testdir):
-    """Make sure that pytest accepts our fixture."""
+class TestFixture:
+    """
+    TODO: test skips, xfails
+    """
 
-    # create a temporary pytest test module
-    testdir.makepyfile("""
-        def test_sth(bar):
-            assert bar == "europython2015"
-    """)
+    def test_simple_terminal_out(self, testdir):
+        testdir.makepyfile(
+            """
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i):
+                        assert i % 2 == 0
+        """
+        )
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(
+            [
+                "collected 1 item",
+                "* test_foo [[]custom[]] (i=1) *",
+                "* test_foo [[]custom[]] (i=3) *",
+                "* 2 failed, 1 passed in *",
+            ]
+        )
 
-    # run pytest with the following cmd args
-    result = testdir.runpytest(
-        '--foo=europython2015',
-        '-v'
-    )
-
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        '*::test_sth PASSED*',
-    ])
-
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
-
-
-def test_help_message(testdir):
-    result = testdir.runpytest(
-        '--help',
-    )
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        'subtests:',
-        '*--foo=DEST_FOO*Set the value for the fixture "bar".',
-    ])
+        # TODO: test skips, xfail
 
 
-def test_hello_ini_setting(testdir):
-    testdir.makeini("""
-        [pytest]
-        HELLO = world
-    """)
+class TestSubTest:
+    """
+    # TODO: test skips, xfails
+    """
 
-    testdir.makepyfile("""
-        import pytest
+    @pytest.mark.parametrize("runner", ["unittest", "pytest"])
+    def test_simple_terminal_out(self, testdir, runner):
+        p = testdir.makepyfile(
+            """
+            from unittest import TestCase, main
 
-        @pytest.fixture
-        def hello(request):
-            return request.config.getini('HELLO')
+            class T(TestCase):
 
-        def test_hello_world(hello):
-            assert hello == 'world'
-    """)
+                def test_foo(self):
+                    for i in range(5):
+                        with self.subTest(msg="custom", i=i):
+                            self.assertEqual(i % 2, 0)
 
-    result = testdir.runpytest('-v')
-
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        '*::test_hello_world PASSED*',
-    ])
-
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        if runner == "unittest":
+            result = testdir.runpython(p)
+            result.stderr.fnmatch_lines(
+                [
+                    "FAIL: test_foo (__main__.T) [custom] (i=1)",
+                    "AssertionError: 1 != 0",
+                    "FAIL: test_foo (__main__.T) [custom] (i=3)",
+                    "AssertionError: 1 != 0",
+                    "Ran 1 test in *",
+                    "FAILED (failures=2)",
+                ]
+            )
+        else:
+            result = testdir.runpytest(p)
+            result.stdout.fnmatch_lines(
+                [
+                    "collected 1 item",
+                    "* T.test_foo [[]custom[]] (i=1) *",
+                    "E  * AssertionError: 1 != 0",
+                    "* T.test_foo [[]custom[]] (i=3) *",
+                    "E  * AssertionError: 1 != 0",
+                    "* 2 failed, 1 passed in *",
+                ]
+            )
