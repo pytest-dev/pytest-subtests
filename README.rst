@@ -11,12 +11,12 @@ pytest-subtests
     :alt: Python versions
 
 .. image:: https://travis-ci.org/pytest-dev/pytest-subtests.svg?branch=master
-    :target: https://travis-ci.org/nicoddemus/pytest-subtests
+    :target: https://travis-ci.org/pytest-dev/pytest-subtests
     :alt: See Build Status on Travis CI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/pytest-dev/pytest-subtests?branch=master
-    :target: https://ci.appveyor.com/project/nicoddemus/pytest-subtests/branch/master
-    :alt: See Build Status on AppVeyor
+.. image:: https://dev.azure.com/pytest-dev/pytest-subtests/_apis/build/status/pytest-subtests-CI?branchName=master
+    :target: https://dev.azure.com/pytest-dev/pytest-subtests
+    :alt: See Build Status on Azure
 
 unittest subTest() support and subtests fixture
 
