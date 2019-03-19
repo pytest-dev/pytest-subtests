@@ -1,6 +1,5 @@
-import six
-
 import pytest
+import six
 
 pytestmark = pytest.mark.skipif(six.PY2, reason="plugin will be Python 3 only")
 

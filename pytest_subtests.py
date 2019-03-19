@@ -2,10 +2,9 @@ from contextlib import contextmanager
 from time import time
 
 import attr
-
 import pytest
-from .reports import TestReport
 from _pytest._code import ExceptionInfo
+from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.unittest import TestCaseFunction
 

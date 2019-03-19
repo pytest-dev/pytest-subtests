@@ -20,6 +20,8 @@ pytest-subtests
 
 unittest subTest() support and subtests fixture
 
+**warning: not yet functional, needs yet to be released pytest 4.4.**
+
 ----
 
 This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
