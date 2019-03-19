@@ -18,7 +18,7 @@ pytest-subtests
     :target: https://dev.azure.com/pytest-dev/pytest-subtests
     :alt: See Build Status on Azure
 
-unittest subTest() support and subtests fixture
+unittest ``subTest()`` support and ``subtests`` fixture.
 
 **warning: not yet functional, needs yet to be released pytest 4.4.**
 
