@@ -10,9 +10,9 @@ jobs:
   strategy:
     matrix:
       pypy:
-        python.version: 'pypy'
-        tox.env: 'pypy'
-        python.exe: 'pypy'
+        python.version: 'pypy3'
+        tox.env: 'pypy3'
+        python.exe: 'pypy3'
       py34:
         python.version: '3.4'
         tox.env: 'py34'
@@ -34,9 +34,9 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: choco install python.pypy
-    condition: eq(variables['python.exe'], 'pypy')
-    displayName: 'Install pypy'
+  - script: choco install pypy3
+    condition: eq(variables['python.exe'], 'pypy3')
+    displayName: 'Install pypy3'
 
   - task: PowerShell@2
     inputs:
