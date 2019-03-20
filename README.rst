@@ -2,6 +2,10 @@
 pytest-subtests
 ===============
 
+unittest ``subTest()`` support and ``subtests`` fixture.
+
+**warning: not yet functional, needs the yet to be released pytest 4.4.**
+
 .. image:: https://img.shields.io/pypi/v/pytest-subtests.svg
     :target: https://pypi.org/project/pytest-subtests
     :alt: PyPI version
@@ -18,10 +22,6 @@ pytest-subtests
     :target: https://dev.azure.com/pytest-dev/pytest-subtests
     :alt: See Build Status on Azure
 
-unittest ``subTest()`` support and ``subtests`` fixture.
-
-**warning: not yet functional, needs yet to be released pytest 4.4.**
-
 ----
 
 This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
@@ -30,27 +30,129 @@ This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`
 Features
 --------
 
-* TODO
+* Adds support for `TestCase.subTest <https://docs.python.org/3/library/unittest.html#distinguishing-test-iterations-using-subtests>`__.
+
+* New ``subtests`` fixture, providing similar functionality for pure pytest tests.
 
 
 Requirements
 ------------
 
-* TODO
-
+* ``Python`` >= 3.4.
+* ``pytest`` >= 4.4.
 
 Installation
 ------------
 
-You can install "pytest-subtests" via `pip`_ from `PyPI`_::
+You can install ``pytest-subtests`` via `pip`_ from `PyPI`_::
 
     $ pip install pytest-subtests
+
+
+**warning: not yet functional, needs yet to be released pytest 4.4.**
 
 
 Usage
 -----
 
-* TODO
+unittest subTest() example
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    import unittest
+
+
+    class T(unittest.TestCase):
+        def test_foo(self):
+            for i in range(5):
+                with self.subTest("custom message", i=i):
+                    self.assertEqual(i % 2, 0)
+
+
+    if __name__ == "__main__":
+        unittest.main()
+
+
+**Output**
+
+.. code-block::
+
+    λ pytest .tmp\test-unit-subtest.py
+    ======================== test session starts ========================
+    ...
+    collected 1 item
+
+    .tmp\test-unit-subtest.py FF.                                  [100%]
+
+    ============================= FAILURES ==============================
+    _________________ T.test_foo [custom message] (i=1) _________________
+
+    self = <test-unit-subtest.T testMethod=test_foo>
+
+        def test_foo(self):
+            for i in range(5):
+                with self.subTest('custom message', i=i):
+    >               self.assertEqual(i % 2, 0)
+    E               AssertionError: 1 != 0
+
+    .tmp\test-unit-subtest.py:9: AssertionError
+    _________________ T.test_foo [custom message] (i=3) _________________
+
+    self = <test-unit-subtest.T testMethod=test_foo>
+
+        def test_foo(self):
+            for i in range(5):
+                with self.subTest('custom message', i=i):
+    >               self.assertEqual(i % 2, 0)
+    E               AssertionError: 1 != 0
+
+    .tmp\test-unit-subtest.py:9: AssertionError
+    ================ 2 failed, 1 passed in 0.07 seconds =================
+
+
+``subtests`` fixture example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    def test(subtests):
+        for i in range(5):
+            with subtests.test(msg="custom message", i=i):
+                assert i % 2 == 0
+
+
+**Output**
+
+.. code-block::
+
+    λ pytest .tmp\test-subtest.py
+    ======================== test session starts ========================
+    ...
+    collected 1 item
+
+    .tmp\test-subtest.py .F.F..                                    [100%]
+
+    ============================= FAILURES ==============================
+    ____________________ test [custom message] (i=1) ____________________
+
+        def test(subtests):
+            for i in range(5):
+                with subtests.test(msg='custom message', i=i):
+    >               assert i % 2 == 0
+    E               assert (1 % 2) == 0
+
+    .tmp\test-subtest.py:4: AssertionError
+    ____________________ test [custom message] (i=3) ____________________
+
+        def test(subtests):
+            for i in range(5):
+                with subtests.test(msg='custom message', i=i):
+    >               assert i % 2 == 0
+    E               assert (3 % 2) == 0
+
+    .tmp\test-subtest.py:4: AssertionError
+    ================ 2 failed, 1 passed in 0.07 seconds =================
 
 Contributing
 ------------
