@@ -26,8 +26,7 @@ setup(
     use_scm_version=True,
     setup_requires=["setuptools-scm", "setuptools>=40.0"],
     python_requires=">=3.4",
-    # TODO: use pytest 4.4 once released
-    # install_requires=['pytest>=4.4.0'],
+    install_requires=["pytest>=4.4.0"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Framework :: Pytest",
