@@ -15,7 +15,7 @@ unittest ``subTest()`` support and ``subtests`` fixture.
     :alt: Python versions
 
 .. image:: https://travis-ci.com/pytest-dev/pytest-subtests.svg?branch=master
-    :target: https://travis-ci.org/pytest-dev/pytest-subtests
+    :target: https://travis-ci.com/pytest-dev/pytest-subtests
     :alt: See Build Status on Travis CI
 
 .. image:: https://pytest-dev.visualstudio.com/pytest-subtests/_apis/build/status/pytest-dev.pytest-subtests?branchName=master
