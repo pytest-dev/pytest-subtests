@@ -4,8 +4,6 @@ pytest-subtests
 
 unittest ``subTest()`` support and ``subtests`` fixture.
 
-**warning: not yet functional, needs the yet to be released pytest 4.4.**
-
 .. image:: https://img.shields.io/pypi/v/pytest-subtests.svg
     :target: https://pypi.org/project/pytest-subtests
     :alt: PyPI version
@@ -48,8 +46,6 @@ You can install ``pytest-subtests`` via `pip`_ from `PyPI`_::
 
     $ pip install pytest-subtests
 
-
-**warning: not yet functional, needs yet to be released pytest 4.4.**
 
 
 Usage
