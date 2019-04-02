@@ -7,9 +7,9 @@ unittest ``subTest()`` support and ``subtests`` fixture.
 .. image:: https://img.shields.io/pypi/v/pytest-subtests.svg
     :target: https://pypi.org/project/pytest-subtests
     :alt: PyPI version
-    
+
 .. image:: https://img.shields.io/conda/vn/conda-forge/pytest-subtests.svg
-    :target: https://anaconda.org/conda-forge/pytest-subtests    
+    :target: https://anaconda.org/conda-forge/pytest-subtests
 
 .. image:: https://img.shields.io/pypi/pyversions/pytest-subtests.svg
     :target: https://pypi.org/project/pytest-subtests
