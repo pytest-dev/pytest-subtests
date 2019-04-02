@@ -1,7 +1,4 @@
 import pytest
-import six
-
-pytestmark = pytest.mark.skipif(six.PY2, reason="plugin will be Python 3 only")
 
 
 class TestFixture:
@@ -28,7 +25,19 @@ class TestFixture:
             ]
         )
 
-        # TODO: test skips, xfail
+    def test_skip(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i):
+                        if i % 2 == 0:
+                            pytest.skip('even number')
+        """
+        )
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(["collected 1 item", "* 1 passed, 3 skipped in *"])
 
 
 class TestSubTest:
@@ -76,4 +85,32 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* 2 failed, 1 passed in *",
                 ]
+            )
+
+    @pytest.mark.parametrize("runner", ["unittest", "pytest"])
+    def test_skip(self, testdir, runner):
+        p = testdir.makepyfile(
+            """
+            from unittest import TestCase, main
+
+            class T(TestCase):
+
+                def test_foo(self):
+                    for i in range(5):
+                        with self.subTest(msg="custom", i=i):
+                            if i % 2 == 0:
+                                self.skipTest('even number')
+
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        if runner == "unittest":
+            result = testdir.runpython(p)
+            result.stderr.fnmatch_lines(["Ran 1 test in *", "OK (skipped=3)"])
+        else:
+            pytest.xfail("Not producing the expected results (#5)")
+            result = testdir.runpytest(p)
+            result.stdout.fnmatch_lines(
+                ["collected 1 item", "* 3 skipped, 1 passed in *"]
             )

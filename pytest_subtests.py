@@ -4,6 +4,7 @@ from time import time
 import attr
 import pytest
 from _pytest._code import ExceptionInfo
+from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.unittest import TestCaseFunction
@@ -76,7 +77,7 @@ class SubTests(object):
         exc_info = None
         try:
             yield
-        except Exception:
+        except (Exception, OutcomeException):
             exc_info = ExceptionInfo.from_current()
         stop = time()
         call_info = CallInfo(None, exc_info, start, stop, when="call")
