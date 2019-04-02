@@ -19,7 +19,7 @@ setup(
     maintainer="Bruno Oliveira",
     maintainer_email="nicoddemus@gmail.com",
     license="MIT",
-    url="https://github.com/nicoddemus/pytest-subtests",
+    url="https://github.com/pytest-dev/pytest-subtests",
     description="unittest subTest() support and subtests fixture",
     long_description=read("README.rst"),
     py_modules=["pytest_subtests"],
