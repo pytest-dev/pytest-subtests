@@ -27,7 +27,9 @@ class SubTestReport(TestReport):
     @property
     def head_line(self):
         _, _, domain = self.location
+        return "{} {}".format(domain, self.sub_test_description())
 
+    def sub_test_description(self):
         parts = []
         if isinstance(self.context.msg, str):
             parts.append("[{}]".format(self.context.msg))
@@ -36,8 +38,23 @@ class SubTestReport(TestReport):
                 "{}={!r}".format(k, v) for (k, v) in sorted(self.context.kwargs.items())
             )
             parts.append("({})".format(params_desc))
-        sub_test_desc = " ".join(parts) or "(<subtest>)"
-        return "{} {}".format(domain, sub_test_desc)
+        return " ".join(parts) or "(<subtest>)"
+
+    def _to_json(self):
+        data = super()._to_json()
+        del data["context"]
+        data["_report_type"] = "SubTestReport"
+        data["_subtest.context"] = attr.asdict(self.context)
+        return data
+
+    @classmethod
+    def _from_json(cls, reportdict):
+        report = super()._from_json(reportdict)
+        context_data = reportdict["_subtest.context"]
+        report.context = SubTestContext(
+            msg=context_data["msg"], kwargs=context_data["kwargs"]
+        )
+        return report
 
 
 def _addSubTest(self, test_case, test, exc_info):
@@ -49,7 +66,7 @@ def _addSubTest(self, test_case, test, exc_info):
         self.ihook.pytest_runtest_logreport(report=sub_report)
 
 
-def pytest_configure():
+def pytest_configure(config):
     TestCaseFunction.addSubTest = _addSubTest
     TestCaseFunction.failfast = False
 
@@ -84,3 +101,13 @@ class SubTests(object):
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
         sub_report.context = SubTestContext(msg, kwargs.copy())
         self.ihook.pytest_runtest_logreport(report=sub_report)
+
+
+def pytest_report_to_serializable(report):
+    if isinstance(report, SubTestReport):
+        return report._to_json()
+
+
+def pytest_report_from_serializable(data):
+    if data.get("_report_type") == "SubTestReport":
+        return SubTestReport._from_json(data)

@@ -1,12 +1,13 @@
 import pytest
 
 
+@pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
     """
     TODO: test skips, xfails
     """
 
-    def test_simple_terminal_out(self, testdir):
+    def test_simple_terminal_out(self, testdir, mode):
         testdir.makepyfile(
             """
             def test_foo(subtests):
@@ -15,17 +16,22 @@ class TestFixture:
                         assert i % 2 == 0
         """
         )
-        result = testdir.runpytest()
-        result.stdout.fnmatch_lines(
-            [
-                "collected 1 item",
-                "* test_foo [[]custom[]] (i=1) *",
-                "* test_foo [[]custom[]] (i=3) *",
-                "* 2 failed, 1 passed in *",
-            ]
-        )
+        if mode == "normal":
+            result = testdir.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            pytest.importorskip("xdist")
+            result = testdir.runpytest("-n1")
+            expected_lines = ["gw0 [1]"]
 
-    def test_skip(self, testdir):
+        expected_lines += [
+            "* test_foo [[]custom[]] (i=1) *",
+            "* test_foo [[]custom[]] (i=3) *",
+            "* 2 failed, 1 passed in *",
+        ]
+        result.stdout.fnmatch_lines(expected_lines)
+
+    def test_skip(self, testdir, mode):
         testdir.makepyfile(
             """
             import pytest
@@ -36,8 +42,15 @@ class TestFixture:
                             pytest.skip('even number')
         """
         )
-        result = testdir.runpytest()
-        result.stdout.fnmatch_lines(["collected 1 item", "* 1 passed, 3 skipped in *"])
+        if mode == "normal":
+            result = testdir.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            pytest.importorskip("xdist")
+            result = testdir.runpytest("-n1")
+            expected_lines = ["gw0 [1]"]
+        expected_lines += ["* 1 passed, 3 skipped in *"]
+        result.stdout.fnmatch_lines(expected_lines)
 
 
 class TestSubTest:
@@ -45,7 +58,7 @@ class TestSubTest:
     # TODO: test skips, xfails
     """
 
-    @pytest.mark.parametrize("runner", ["unittest", "pytest"])
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_simple_terminal_out(self, testdir, runner):
         p = testdir.makepyfile(
             """
@@ -75,10 +88,16 @@ class TestSubTest:
                 ]
             )
         else:
-            result = testdir.runpytest(p)
+            if runner == "pytest-normal":
+                result = testdir.runpytest(p)
+                expected_lines = ["collected 1 item"]
+            else:
+                pytest.importorskip("xdist")
+                result = testdir.runpytest("-n1")
+                expected_lines = ["gw0 [1]"]
             result.stdout.fnmatch_lines(
-                [
-                    "collected 1 item",
+                expected_lines
+                + [
                     "* T.test_foo [[]custom[]] (i=1) *",
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
@@ -87,7 +106,7 @@ class TestSubTest:
                 ]
             )
 
-    @pytest.mark.parametrize("runner", ["unittest", "pytest"])
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_skip(self, testdir, runner):
         p = testdir.makepyfile(
             """
