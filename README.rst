@@ -23,6 +23,9 @@ unittest ``subTest()`` support and ``subtests`` fixture.
     :target: https://dev.azure.com/pytest-dev/pytest-subtests
     :alt: See Build Status on Azure
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
+
 ----
 
 This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
