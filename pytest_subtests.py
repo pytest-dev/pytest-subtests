@@ -1,3 +1,4 @@
+import sys
 from contextlib import contextmanager
 from time import time
 
@@ -8,6 +9,16 @@ from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.unittest import TestCaseFunction
+
+if sys.version_info[:2] < (3, 7):
+
+    @contextmanager
+    def nullcontext():
+        yield
+
+
+else:
+    from contextlib import nullcontext
 
 
 @attr.s
@@ -80,13 +91,19 @@ def pytest_unconfigure():
 
 @pytest.fixture
 def subtests(request):
-    yield SubTests(request.node.ihook, request.node)
+    capmam = request.node.config.pluginmanager.get_plugin("capturemanager")
+    if capmam is not None:
+        suspend_capture_ctx = capmam.global_and_fixture_disabled
+    else:
+        suspend_capture_ctx = nullcontext
+    yield SubTests(request.node.ihook, request.node, suspend_capture_ctx)
 
 
 @attr.s
 class SubTests(object):
     ihook = attr.ib()
     item = attr.ib()
+    suspend_capture_ctx = attr.ib()
 
     @contextmanager
     def test(self, msg=None, **kwargs):
@@ -100,7 +117,8 @@ class SubTests(object):
         call_info = CallInfo(None, exc_info, start, stop, when="call")
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
         sub_report.context = SubTestContext(msg, kwargs.copy())
-        self.ihook.pytest_runtest_logreport(report=sub_report)
+        with self.suspend_capture_ctx():
+            self.ihook.pytest_runtest_logreport(report=sub_report)
 
 
 def pytest_report_to_serializable(report):
