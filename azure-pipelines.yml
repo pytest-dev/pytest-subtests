@@ -8,9 +8,10 @@ jobs:
     vmImage: "vs2017-win2016"
   strategy:
     matrix:
-      pypy:
-        python.version: 'pypy3'
-        tox.env: 'pypy3'
+      # pypy3 is failing because of: https://bitbucket.org/pypy/pypy/issues/2928/invoking-pypy3-v600-by-tox-on-windows-10
+      # pypy:
+      #   python.version: 'pypy3'
+      #   tox.env: 'pypy3'
       py34:
         python.version: '3.4'
         tox.env: 'py34'
