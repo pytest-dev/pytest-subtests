@@ -1,6 +1,5 @@
 variables:
   PYTEST_ADDOPTS: "--junitxml=build/test-results/$(tox.env).xml"
-  python.exe: "python"
 
 jobs:
 
@@ -9,11 +8,9 @@ jobs:
     vmImage: "vs2017-win2016"
   strategy:
     matrix:
-      # pypy3 is failing because of: https://bitbucket.org/pypy/pypy/issues/2928/invoking-pypy3-v600-by-tox-on-windows-10
-#      pypy:
-#        python.version: 'pypy3'
-#        tox.env: 'pypy3'
-#        python.exe: 'pypy3'
+      pypy:
+        python.version: 'pypy3'
+        tox.env: 'pypy3'
       py34:
         python.version: '3.4'
         tox.env: 'py34'
@@ -26,33 +23,27 @@ jobs:
       py37:
         python.version: '3.7'
         tox.env: 'py37'
-    maxParallel: 10
 
   steps:
   - task: UsePythonVersion@0
-    condition: not(startsWith(variables['python.exe'], 'pypy'))
     inputs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
-
-  - script: choco install pypy3
-    condition: eq(variables['python.exe'], 'pypy3')
-    displayName: 'Install pypy3'
 
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
       script: |
         Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "get-pip.py"
-        $(python.exe) get-pip.py
+        python get-pip.py
     condition: startsWith(variables['python.exe'], 'pypy')
     displayName: 'Install pip'
 
-  - script: $(python.exe) -m pip install --upgrade pip && $(python.exe) -m pip install tox
+  - script: python -m pip install --upgrade pip && python -m pip install tox
     displayName: 'Install tox'
 
   - script: |
-      $(python.exe) -m tox -e $(tox.env)
+      python -m tox -e $(tox.env)
     displayName: 'Run tests'
 
   - task: PublishTestResults@2
