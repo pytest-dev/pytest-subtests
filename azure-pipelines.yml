@@ -30,15 +30,6 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - task: PowerShell@2
-    inputs:
-      targetType: 'inline'
-      script: |
-        Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "get-pip.py"
-        python get-pip.py
-    condition: startsWith(variables['python.exe'], 'pypy')
-    displayName: 'Install pip'
-
   - script: python -m pip install --upgrade pip && python -m pip install tox
     displayName: 'Install tox'
 
