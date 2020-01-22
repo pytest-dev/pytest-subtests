@@ -1,10 +1,13 @@
 import sys
 from contextlib import contextmanager
-from time import time
+from time import monotonic
 
 import attr
 import pytest
 from _pytest._code import ExceptionInfo
+from _pytest.capture import CaptureFixture
+from _pytest.capture import FDCapture
+from _pytest.capture import SysCapture
 from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
@@ -96,29 +99,79 @@ def subtests(request):
         suspend_capture_ctx = capmam.global_and_fixture_disabled
     else:
         suspend_capture_ctx = nullcontext
-    yield SubTests(request.node.ihook, request.node, suspend_capture_ctx)
+    yield SubTests(request.node.ihook, suspend_capture_ctx, request)
 
 
 @attr.s
 class SubTests(object):
     ihook = attr.ib()
-    item = attr.ib()
     suspend_capture_ctx = attr.ib()
+    request = attr.ib()
+
+    @property
+    def item(self):
+        return self.request.node
+
+    @contextmanager
+    def _capturing_output(self):
+        option = self.request.config.getoption("capture", None)
+
+        # capsys or capfd are active, subtest should not capture
+        capture_fixture_active = hasattr(self.request.node, "_capture_fixture")
+
+        if option == "sys" and not capture_fixture_active:
+            fixture = CaptureFixture(SysCapture, self.request)
+        elif option == "fd" and not capture_fixture_active:
+            fixture = CaptureFixture(FDCapture, self.request)
+        else:
+            fixture = None
+
+        if fixture is not None:
+            fixture._start()
+
+        captured = Captured()
+        try:
+            yield captured
+        finally:
+            if fixture is not None:
+                out, err = fixture.readouterr()
+                fixture.close()
+                captured.out = out
+                captured.err = err
 
     @contextmanager
     def test(self, msg=None, **kwargs):
-        start = time()
+        start = monotonic()
         exc_info = None
-        try:
-            yield
-        except (Exception, OutcomeException):
-            exc_info = ExceptionInfo.from_current()
-        stop = time()
+
+        with self._capturing_output() as captured:
+            try:
+                yield
+            except (Exception, OutcomeException):
+                exc_info = ExceptionInfo.from_current()
+
+        stop = monotonic()
+
         call_info = CallInfo(None, exc_info, start, stop, when="call")
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
         sub_report.context = SubTestContext(msg, kwargs.copy())
+
+        captured.update_report(sub_report)
+
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
+
+
+@attr.s
+class Captured:
+    out = attr.ib(default="", type=str)
+    err = attr.ib(default="", type=str)
+
+    def update_report(self, report):
+        if self.out:
+            report.sections.append(("Captured stdout call", self.out))
+        if self.err:
+            report.sections.append(("Captured stderr call", self.err))
 
 
 def pytest_report_to_serializable(report):

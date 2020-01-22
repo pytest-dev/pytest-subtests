@@ -219,3 +219,91 @@ class TestSubTest:
             result.stdout.fnmatch_lines(
                 ["collected 1 item", "* 3 skipped, 1 passed in *"]
             )
+
+
+class TestCapture:
+    def create_file(self, testdir):
+        testdir.makepyfile(
+            """
+                    import sys
+                    def test(subtests):
+                        print()
+                        print('start test')
+
+                        with subtests.test(i='A'):
+                            print("hello stdout A")
+                            print("hello stderr A", file=sys.stderr)
+                            assert 0
+
+                        with subtests.test(i='B'):
+                            print("hello stdout B")
+                            print("hello stderr B", file=sys.stderr)
+                            assert 0
+
+                        print('end test')
+                        assert 0
+                """
+        )
+
+    def test_capturing(self, testdir):
+        self.create_file(testdir)
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(
+            [
+                "*__ test (i='A') __*",
+                "*Captured stdout call*",
+                "hello stdout A",
+                "*Captured stderr call*",
+                "hello stderr A",
+                "*__ test (i='B') __*",
+                "*Captured stdout call*",
+                "hello stdout B",
+                "*Captured stderr call*",
+                "hello stderr B",
+                "*__ test __*",
+                "*Captured stdout call*",
+                "start test",
+                "end test",
+            ]
+        )
+
+    def test_no_capture(self, testdir):
+        self.create_file(testdir)
+        result = testdir.runpytest("-s")
+        result.stdout.fnmatch_lines(
+            [
+                "start test",
+                "hello stdout A",
+                "Fhello stdout B",
+                "Fend test",
+                "*__ test (i='A') __*",
+                "*__ test (i='B') __*",
+                "*__ test __*",
+            ]
+        )
+        result.stderr.fnmatch_lines(["hello stderr A", "hello stderr B"])
+
+    @pytest.mark.parametrize("fixture", ["capsys", "capfd"])
+    def test_capture_with_fixture(self, testdir, fixture):
+        testdir.makepyfile(
+            r"""
+            import sys
+
+            def test(subtests, {fixture}):
+                print('start test')
+
+                with subtests.test(i='A'):
+                    print("hello stdout A")
+                    print("hello stderr A", file=sys.stderr)
+
+                out, err = {fixture}.readouterr()
+                assert out == 'start test\nhello stdout A\n'
+                assert err == 'hello stderr A\n'
+        """.format(
+                fixture=fixture
+            )
+        )
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(
+            ["*1 passed*",]
+        )
