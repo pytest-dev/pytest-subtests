@@ -15,13 +15,8 @@ unittest ``subTest()`` support and ``subtests`` fixture.
     :target: https://pypi.org/project/pytest-subtests
     :alt: Python versions
 
-.. image:: https://travis-ci.com/pytest-dev/pytest-subtests.svg?branch=master
-    :target: https://travis-ci.com/pytest-dev/pytest-subtests
-    :alt: See Build Status on Travis CI
-
-.. image:: https://pytest-dev.visualstudio.com/pytest-subtests/_apis/build/status/pytest-dev.pytest-subtests?branchName=master
-    :target: https://dev.azure.com/pytest-dev/pytest-subtests
-    :alt: See Build Status on Azure
+.. image:: https://github.com/pytest-dev/pytest-subtests/workflows/build/badge.svg
+  :target: https://github.com/pytest-dev/pytest-subtests/actions
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
@@ -42,7 +37,7 @@ Features
 Requirements
 ------------
 
-* ``Python`` >= 3.4.
+* ``Python`` >= 3.5.
 * ``pytest`` >= 4.4.
 
 Installation
