@@ -15,11 +15,13 @@ jobs:
           "windows-py36",
           "windows-py37",
           "windows-py38",
+          "windows-py38-pytest53",
 
           "ubuntu-py35",
           "ubuntu-py36",
           "ubuntu-py37",
           "ubuntu-py38",
+          "ubuntu-py38-pytest53",
 
           "linting",
         ]
@@ -41,6 +43,10 @@ jobs:
             python: "3.8"
             os: windows-latest
             tox_env: "py38"
+          - name: "windows-py38-pytest53"
+            python: "3.8"
+            os: windows-latest
+            tox_env: "py38-pytest53"
 
           - name: "ubuntu-py35"
             python: "3.5"
@@ -58,6 +64,10 @@ jobs:
             python: "3.8"
             os: ubuntu-latest
             tox_env: "py38"
+          - name: "ubuntu-py38-pytest53"
+            python: "3.8"
+            os: ubuntu-latest
+            tox_env: "py38-pytest53"
 
           - name: "linting"
             python: "3.7"
