@@ -32,7 +32,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 2 failed, 1 passed in *",
+            "* 3 failed, 0 passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -46,7 +46,7 @@ class TestFixture:
                 "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
                 "test_simple_terminal_verbose.py::test_foo FAILED *100%*",
                 "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
-                "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
+                "test_simple_terminal_verbose.py::test_foo FAILED *100%*",
             ]
         else:
             pytest.importorskip("xdist")
@@ -64,7 +64,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 2 failed, 1 passed in *",
+            "* 3 failed, 0 passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -87,6 +87,60 @@ class TestFixture:
             result = testdir.runpytest("-n1")
             expected_lines = ["gw0 [1]"]
         expected_lines += ["* 1 passed, 3 skipped in *"]
+        result.stdout.fnmatch_lines(expected_lines)
+
+    def test_skip_after_failed_subtest(self, testdir, mode):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            def test_skip_after_failed_subtest_py(subtests):
+                with subtests.test("failing subtest"):
+                    assert 2*2 == 5
+
+                pytest.skip("Try to skip it")
+        """
+        )
+        if mode == "normal":
+            result = testdir.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            pytest.importorskip("xdist")
+            result = testdir.runpytest("-n1")
+            expected_lines = ["gw0 [1]"]
+
+        expected_lines += [
+            "*_ test_skip_after_failed_subtest_py [[]failing subtest[]] _*",
+            "E*assert (2 * 2) == 5",
+            "*: AssertionError",
+            "*_ test_skip_after_failed_subtest_py _*",
+            "E*pytest_subtests.SubTestFailed: Failed subtests: 1",
+            "*: SubTestFailed",
+            "* 2 failed in *",
+        ]
+        result.stdout.fnmatch_lines(expected_lines)
+
+    def test_skip_after_passed_subtest(self, testdir, mode):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            def test_skip_after_passed_subtest_py(subtests):
+                with subtests.test("successful subtest"):
+                    assert 2*2 == 4
+
+                pytest.skip("Try to skip it")
+        """
+        )
+        if mode == "normal":
+            result = testdir.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            pytest.importorskip("xdist")
+            result = testdir.runpytest("-n1")
+            expected_lines = ["gw0 [1]"]
+
+        expected_lines += ["* 0 passed, 1 skipped in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
 
@@ -143,7 +197,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 2 failed, 1 passed in *",
+                    "* 3 failed in *",
                 ]
             )
 
@@ -170,7 +224,7 @@ class TestSubTest:
                     "*collected 1 item",
                     "test_simple_terminal_verbose.py::T::test_foo FAILED *100%*",
                     "test_simple_terminal_verbose.py::T::test_foo FAILED *100%*",
-                    "test_simple_terminal_verbose.py::T::test_foo PASSED *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo FAILED *100%*",
                 ]
             else:
                 pytest.importorskip("xdist")
@@ -179,7 +233,7 @@ class TestSubTest:
                     "gw0 [1]",
                     "*gw0*100%* FAILED test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* FAILED test_simple_terminal_verbose.py::T::test_foo*",
-                    "*gw0*100%* PASSED test_simple_terminal_verbose.py::T::test_foo*",
+                    "*gw0*100%* FAILED test_simple_terminal_verbose.py::T::test_foo*",
                 ]
             result.stdout.fnmatch_lines(
                 expected_lines
@@ -188,7 +242,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 2 failed, 1 passed in *",
+                    "* 3 failed in *",
                 ]
             )
 
