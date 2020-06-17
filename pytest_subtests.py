@@ -9,6 +9,7 @@ from _pytest.capture import CaptureFixture
 from _pytest.capture import FDCapture
 from _pytest.capture import SysCapture
 from _pytest.outcomes import OutcomeException
+from _pytest.outcomes import Skipped
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.unittest import TestCaseFunction
@@ -22,6 +23,20 @@ if sys.version_info[:2] < (3, 7):
 
 else:
     from contextlib import nullcontext
+
+_ATTR_COUNTER = "_subtests_failed"
+
+
+class SubTestFailed(OutcomeException):
+    """Exception to report failures due to subtest errors
+
+    Raised to modify outcome of otherwise passed or skipped test
+    if it has failed subtests.
+    """
+
+    @classmethod
+    def from_count(cls, count):
+        return cls("Failed subtests: {}".format(count))
 
 
 @attr.s
@@ -74,10 +89,12 @@ class SubTestReport(TestReport):
 def _addSubTest(self, test_case, test, exc_info):
     if exc_info is not None:
         msg = test._message if isinstance(test._message, str) else None
-        call_info = CallInfo(None, ExceptionInfo(exc_info), 0, 0, when="call")
+        exc_info = ExceptionInfo(exc_info)
+        call_info = CallInfo(None, exc_info, 0, 0, when="call")
         sub_report = SubTestReport.from_item_and_call(item=self, call=call_info)
         sub_report.context = SubTestContext(msg, dict(test.params))
         self.ihook.pytest_runtest_logreport(report=sub_report)
+        _increment_failed_subtests(exc_info, self)
 
 
 def pytest_configure(config):
@@ -161,6 +178,7 @@ class SubTests(object):
         call_info = CallInfo(None, exc_info, start, stop, when="call")
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
         sub_report.context = SubTestContext(msg, kwargs.copy())
+        _increment_failed_subtests(exc_info, self.item)
 
         captured.update_report(sub_report)
 
@@ -188,3 +206,46 @@ def pytest_report_to_serializable(report):
 def pytest_report_from_serializable(data):
     if data.get("_report_type") == "SubTestReport":
         return SubTestReport._from_json(data)
+
+
+def _increment_failed_subtests(exc_info, item):
+    # For unittest.TestCase.subTest skipped tests
+    # are processed through TestResult.addSkip, not here
+    if exc_info is None or exc_info.errisinstance(Skipped):
+        return
+    setattr(item, _ATTR_COUNTER, getattr(item, _ATTR_COUNTER, 0) + 1)
+
+
+# a function to be shown in traceback instead of less informative hook name
+def check_failed_subtests(item):
+    failed = getattr(item, _ATTR_COUNTER, 0)
+    if failed > 0:
+        raise SubTestFailed.from_count(failed)
+
+
+# more tricky alternative is pytest_runtest_makereport hook
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    """Wrapper to avoid accounting of tests with failed subtests as passed
+
+    Force ``SubTestFailed`` exception if some subtests failed
+    but the test outcome is from passed or skipped categories.
+    """
+    __tracebackhide__ = True
+    try:
+        outcome = yield
+        try:
+            outcome.get_result()
+        except Skipped:
+            pass
+        except (Exception, OutcomeException):
+            return
+
+        # Due to pluggy#244 could not just raise the exception
+        try:
+            check_failed_subtests(item)
+        except SubTestFailed:
+            outcome._excinfo = sys.exc_info()
+    finally:
+        if hasattr(item, _ATTR_COUNTER):
+            delattr(item, _ATTR_COUNTER)
