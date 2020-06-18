@@ -1,4 +1,5 @@
 import sys
+from collections import ChainMap
 from contextlib import contextmanager
 from time import monotonic
 
@@ -102,11 +103,60 @@ def subtests(request):
     yield SubTests(request.node.ihook, suspend_capture_ctx, request)
 
 
+@pytest.fixture
+def check(subtests):
+    return subtests
+
+
+@attr.s
+class SubTestParams:
+    msg = attr.ib(type=str, default=None)
+    kwargs = attr.ib(type=dict, default=None)
+    parent = attr.ib(type=ChainMap, default=None)
+    contextmanager = attr.ib(default=None)
+
+    def context(self):
+        params = self.parent
+        if self.kwargs:
+            if params:
+                params = params.new_child(self.kwargs)
+            else:
+                params = self.kwargs
+        if not params:
+            params = {}
+        # xdist can not serialize ChainMap
+        if isinstance(params, ChainMap):
+            params = dict(params.items())
+        return SubTestContext(self.msg, params)
+
+    def child(self):
+        chld = SubTestParams()
+        if self.msg is not None:
+            chld.msg = self.msg
+        if self.parent is not None:
+            if self.kwargs is not None:
+                chld.parent = self.parent.new_child(self.kwargs)
+            else:
+                chld.parent = self.parent
+        elif self.kwargs is not None:
+            chld.parent = ChainMap(self.kwargs)
+        return chld
+
+    def updated(self, msg=None, **kwargs):
+        copy = attr.evolve(self)
+        if msg is not None:
+            copy.msg = msg
+        if kwargs:
+            copy.kwargs = kwargs.copy()
+        return copy
+
+
 @attr.s
 class SubTests(object):
     ihook = attr.ib()
     suspend_capture_ctx = attr.ib()
     request = attr.ib()
+    _params = attr.ib(default=attr.Factory(SubTestParams), init=False)
 
     @property
     def item(self):
@@ -145,8 +195,27 @@ class SubTests(object):
                 captured.out = out
                 captured.err = err
 
-    @contextmanager
     def test(self, msg=None, **kwargs):
+        """Compatibility method, use ``subtest(msg, i=3)``"""
+        return self.__call__(msg, **kwargs)
+
+    @contextmanager
+    def _nested_scope(self, saved_params):
+        if saved_params is None:
+            saved_params = self._params
+        self._params = self._params.child()
+        try:
+            yield
+        finally:
+            self._params = saved_params
+
+    @contextmanager
+    def _subtest(self, saved_params=None):
+        with self._nested_scope(saved_params), self._capture_result():
+            yield
+
+    @contextmanager
+    def _capture_result(self):
         start = monotonic()
         exc_info = None
 
@@ -160,12 +229,28 @@ class SubTests(object):
 
         call_info = CallInfo(None, exc_info, start, stop, when="call")
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
-        sub_report.context = SubTestContext(msg, kwargs.copy())
+        sub_report.context = self._params.context()
 
         captured.update_report(sub_report)
 
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
+
+    def __call__(self, msg=None, **kwargs):
+        saved_params = self._params
+        self._params = self._params.updated(msg, **kwargs)
+        return self._subtest(saved_params)
+
+    def __enter__(self):
+        subtest = self._subtest()
+        retval = subtest.__enter__()
+        self._params.contextmanager = subtest
+        return retval
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        subtest = self._params.contextmanager
+        self._params.contextmanager = None
+        return subtest.__exit__(exc_type, exc_val, exc_tb)
 
 
 @attr.s
