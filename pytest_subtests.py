@@ -188,3 +188,17 @@ def pytest_report_to_serializable(report):
 def pytest_report_from_serializable(data):
     if data.get("_report_type") == "SubTestReport":
         return SubTestReport._from_json(data)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_report_teststatus(report):
+    if report.when != "call" or not isinstance(report, SubTestReport):
+        return
+
+    outcome = report.outcome
+    if report.passed:
+        return outcome, ",", "SUBPASS"
+    elif report.skipped:
+        return outcome, "-", "SUBSKIP"
+    elif outcome == "failed":
+        return outcome, "u", "SUBFAIL"

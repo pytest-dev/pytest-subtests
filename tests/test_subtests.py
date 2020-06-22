@@ -41,11 +41,11 @@ class TestFixture:
             result = testdir.runpytest("-v")
             expected_lines = [
                 "*collected 1 item",
-                "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
-                "test_simple_terminal_verbose.py::test_foo FAILED *100%*",
-                "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
-                "test_simple_terminal_verbose.py::test_foo FAILED *100%*",
-                "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
+                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
                 "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
             ]
         else:
@@ -168,8 +168,8 @@ class TestSubTest:
                 result = testdir.runpytest(simple_script, "-v")
                 expected_lines = [
                     "*collected 1 item",
-                    "test_simple_terminal_verbose.py::T::test_foo FAILED *100%*",
-                    "test_simple_terminal_verbose.py::T::test_foo FAILED *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
                     "test_simple_terminal_verbose.py::T::test_foo PASSED *100%*",
                 ]
             else:
@@ -177,8 +177,8 @@ class TestSubTest:
                 result = testdir.runpytest(simple_script, "-n1", "-v")
                 expected_lines = [
                     "gw0 [1]",
-                    "*gw0*100%* FAILED test_simple_terminal_verbose.py::T::test_foo*",
-                    "*gw0*100%* FAILED test_simple_terminal_verbose.py::T::test_foo*",
+                    "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
+                    "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* PASSED test_simple_terminal_verbose.py::T::test_foo*",
                 ]
             result.stdout.fnmatch_lines(
@@ -274,8 +274,8 @@ class TestCapture:
             [
                 "start test",
                 "hello stdout A",
-                "Fhello stdout B",
-                "Fend test",
+                "uhello stdout B",
+                "uend test",
                 "*__ test (i='A') __*",
                 "*__ test (i='B') __*",
                 "*__ test __*",
