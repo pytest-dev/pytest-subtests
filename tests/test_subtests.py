@@ -32,7 +32,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 3 failed, 0 passed in *",
+            "* 2 failed, 0 passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -64,7 +64,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 3 failed, 0 passed in *",
+            "* 2 failed, 0 passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -114,9 +114,9 @@ class TestFixture:
             "E*assert (2 * 2) == 5",
             "*: AssertionError",
             "*_ test_skip_after_failed_subtest_py _*",
-            "E*pytest_subtests.SubTestFailed: Failed subtests: 1",
-            "*: SubTestFailed",
-            "* 2 failed in *",
+            "Failed subtests: 1",
+            # TODO consider reporting of skip as well
+            "* 1 failed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -197,7 +197,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 3 failed in *",
+                    "* 2 failed in *",
                 ]
             )
 
@@ -242,7 +242,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 3 failed in *",
+                    "* 2 failed in *",
                 ]
             )
 

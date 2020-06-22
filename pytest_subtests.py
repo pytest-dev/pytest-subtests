@@ -206,6 +206,8 @@ def pytest_report_to_serializable(report):
 def pytest_report_from_serializable(data):
     if data.get("_report_type") == "SubTestReport":
         return SubTestReport._from_json(data)
+    elif data.get("$report_type") == "SubTestFailureReport":
+        return SubTestFailureReport._from_json(data)
 
 
 def _increment_failed_subtests(exc_info, item):
@@ -249,3 +251,20 @@ def pytest_runtest_call(item):
     finally:
         if hasattr(item, _ATTR_COUNTER):
             delattr(item, _ATTR_COUNTER)
+
+
+class SubTestFailureReport(TestReport):
+    @property
+    def count_towards_summary(self):
+        return False
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    excinfo = call.excinfo
+    if excinfo is None or not isinstance(excinfo.value, SubTestFailed):
+        return
+
+    report = SubTestFailureReport.from_item_and_call(item=item, call=call)
+    report.longrepr = str(excinfo.value)
+    return report
