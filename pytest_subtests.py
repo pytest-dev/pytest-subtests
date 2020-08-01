@@ -1,6 +1,6 @@
 import sys
+import time
 from contextlib import contextmanager
-from time import monotonic
 
 import attr
 import pytest
@@ -74,7 +74,9 @@ class SubTestReport(TestReport):
 def _addSubTest(self, test_case, test, exc_info):
     if exc_info is not None:
         msg = test._message if isinstance(test._message, str) else None
-        call_info = CallInfo(None, ExceptionInfo(exc_info), 0, 0, when="call")
+        call_info = make_call_info(
+            ExceptionInfo(exc_info), start=0, stop=0, duration=0, when="call"
+        )
         sub_report = SubTestReport.from_item_and_call(item=self, call=call_info)
         sub_report.context = SubTestContext(msg, dict(test.params))
         self.ihook.pytest_runtest_logreport(report=sub_report)
@@ -147,7 +149,8 @@ class SubTests(object):
 
     @contextmanager
     def test(self, msg=None, **kwargs):
-        start = monotonic()
+        start = time.time()
+        precise_start = time.perf_counter()
         exc_info = None
 
         with self._capturing_output() as captured:
@@ -156,9 +159,13 @@ class SubTests(object):
             except (Exception, OutcomeException):
                 exc_info = ExceptionInfo.from_current()
 
-        stop = monotonic()
+        precise_stop = time.perf_counter()
+        duration = precise_stop - precise_start
+        stop = time.time()
 
-        call_info = CallInfo(None, exc_info, start, stop, when="call")
+        call_info = make_call_info(
+            exc_info, start=start, stop=stop, duration=duration, when="call"
+        )
         sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
         sub_report.context = SubTestContext(msg, kwargs.copy())
 
@@ -166,6 +173,16 @@ class SubTests(object):
 
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
+
+
+def make_call_info(exc_info, *, start, stop, duration, when):
+    try:
+        return CallInfo(
+            None, exc_info, start=start, stop=stop, duration=duration, when=when
+        )
+    except TypeError:
+        # support for pytest<6: didn't have a duration parameter then
+        return CallInfo(None, exc_info, start=start, stop=stop, when=when)
 
 
 @attr.s
