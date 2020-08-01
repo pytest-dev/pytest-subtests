@@ -47,6 +47,10 @@ jobs:
             python: "3.8"
             os: windows-latest
             tox_env: "py38-pytest53"
+          - name: "windows-py38-pytest54"
+            python: "3.8"
+            os: windows-latest
+            tox_env: "py38-pytest54"
 
           - name: "ubuntu-py35"
             python: "3.5"
