@@ -38,7 +38,7 @@ Requirements
 ------------
 
 * ``Python`` >= 3.5.
-* ``pytest`` >= 4.4.
+* ``pytest`` >= 5.3.
 
 pytest 6.2+
 ^^^^^^^^^^^
