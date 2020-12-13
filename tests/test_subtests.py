@@ -3,6 +3,20 @@ import sys
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def ignore_private_class_warning(testdir):
+    """
+    Make every test in this file ignore the warning about using private pytest classes;
+    It is a risk we are willing to take in this plugin.
+    """
+    testdir.makeini(
+        """
+        [pytest]
+        filterwarnings = ignore:A private pytest class
+        """
+    )
+
+
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
     """
