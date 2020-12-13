@@ -11,6 +11,7 @@ from _pytest.capture import SysCapture
 from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
+from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
 
 if sys.version_info[:2] < (3, 7):
@@ -80,6 +81,10 @@ def _addSubTest(self, test_case, test, exc_info):
         sub_report = SubTestReport.from_item_and_call(item=self, call=call_info)
         sub_report.context = SubTestContext(msg, dict(test.params))
         self.ihook.pytest_runtest_logreport(report=sub_report)
+        if check_interactive_exception(call_info, sub_report):
+            self.ihook.pytest_exception_interact(
+                node=self, call=call_info, report=sub_report
+            )
 
 
 def pytest_configure(config):
@@ -173,6 +178,11 @@ class SubTests(object):
 
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
+
+        if check_interactive_exception(call_info, sub_report):
+            self.ihook.pytest_exception_interact(
+                node=self.item, call=call_info, report=sub_report
+            )
 
 
 def make_call_info(exc_info, *, start, stop, duration, when):
