@@ -23,7 +23,7 @@ setup(
     use_scm_version=True,
     setup_requires=["setuptools-scm", "setuptools>=40.0"],
     python_requires=">=3.5",
-    install_requires=["pytest>=4.4.0"],
+    install_requires=["pytest>=5.3.0"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Framework :: Pytest",
@@ -35,6 +35,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
