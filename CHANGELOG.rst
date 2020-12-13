@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.4.0 (2020-12-13)
+------------------
+
+* Add support for ``--pdb`` (`#22`_).
+
+.. _#22: https://github.com/pytest-dev/pytest-subtests/issues/22
+
 0.3.2 (2020-08-01)
 ------------------
 

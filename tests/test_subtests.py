@@ -3,6 +3,20 @@ import sys
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def ignore_private_class_warning(testdir):
+    """
+    Make every test in this file ignore the warning about using private pytest classes;
+    It is a risk we are willing to take in this plugin.
+    """
+    testdir.makeini(
+        """
+        [pytest]
+        filterwarnings = ignore:A private pytest class
+        """
+    )
+
+
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
     """
@@ -307,3 +321,63 @@ class TestCapture:
         result.stdout.fnmatch_lines(
             ["*1 passed*",]
         )
+
+
+class TestDebugging:
+    """Check --pdb support for subtests fixture and TestCase.subTest."""
+
+    class _FakePdb:
+        """
+        Fake debugger class implementation that tracks which methods were called on it.
+        """
+
+        quitting = False
+        calls = []
+
+        def __init__(self, *args, **kwargs):
+            self.calls.append("init")
+
+        def reset(self):
+            self.calls.append("reset")
+
+        def interaction(self, *args):
+            self.calls.append("interaction")
+
+    @pytest.fixture(autouse=True)
+    def cleanup_calls(self):
+        self._FakePdb.calls.clear()
+
+    def test_pdb_fixture(self, testdir, monkeypatch):
+        testdir.makepyfile(
+            """
+            def test(subtests):
+                with subtests.test():
+                    assert 0
+            """
+        )
+        self.runpytest_and_check_pdb(testdir, monkeypatch)
+
+    def test_pdb_unittest(self, testdir, monkeypatch):
+        testdir.makepyfile(
+            """
+            from unittest import TestCase
+            class Test(TestCase):
+                def test(self):
+                    with self.subTest():
+                        assert 0
+            """
+        )
+        self.runpytest_and_check_pdb(testdir, monkeypatch)
+
+    def runpytest_and_check_pdb(self, testdir, monkeypatch):
+        # Install the fake pdb implementation in pytest_subtests so we can reference
+        # it in the command line (any module would do).
+        import pytest_subtests
+
+        monkeypatch.setattr(pytest_subtests, "_CustomPdb", self._FakePdb, raising=False)
+        result = testdir.runpytest("--pdb", "--pdbcls=pytest_subtests:_CustomPdb")
+
+        # Ensure pytest entered in debugging mode when encountering the failing
+        # assert.
+        result.stdout.fnmatch_lines("*entering PDB*")
+        assert self._FakePdb.calls == ["init", "reset", "interaction"]
