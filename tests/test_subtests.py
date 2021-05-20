@@ -103,6 +103,27 @@ class TestFixture:
         expected_lines += ["* 1 passed, 3 skipped in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
+    def test_xfail(self, testdir, mode):
+        testdir.makepyfile(
+            """
+            import pytest
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i):
+                        if i % 2 == 0:
+                            pytest.xfail('even number')
+        """
+        )
+        if mode == "normal":
+            result = testdir.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            pytest.importorskip("xdist")
+            result = testdir.runpytest("-n1")
+            expected_lines = ["gw0 [1]"]
+        expected_lines += ["* 1 passed, 3 xfailed in *"]
+        result.stdout.fnmatch_lines(expected_lines)
+
 
 class TestSubTest:
     """
@@ -232,6 +253,35 @@ class TestSubTest:
             result = testdir.runpytest(p)
             result.stdout.fnmatch_lines(
                 ["collected 1 item", "* 3 skipped, 1 passed in *"]
+            )
+
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
+    @pytest.mark.xfail(reason="Not producing the expected results (#5)")
+    def test_xfail(self, testdir, runner):
+        p = testdir.makepyfile(
+            """
+            import pytest
+            from unittest import expectedFailure, TestCase, main
+
+            class T(TestCase):
+                @expectedFailure
+                def test_foo(self):
+                    for i in range(5):
+                        with self.subTest(msg="custom", i=i):
+                            if i % 2 == 0:
+                                raise pytest.xfail('even number')
+
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        if runner == "unittest":
+            result = testdir.runpython(p)
+            result.stderr.fnmatch_lines(["Ran 1 test in *", "OK (expected failures=3)"])
+        else:
+            result = testdir.runpytest(p)
+            result.stdout.fnmatch_lines(
+                ["collected 1 item", "* 3 xfailed, 1 passed in *"]
             )
 
 

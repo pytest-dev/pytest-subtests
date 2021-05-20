@@ -71,6 +71,10 @@ class SubTestReport(TestReport):
         )
         return report
 
+    @classmethod
+    def from_test_report(cls, test_report):
+        return super()._from_json(test_report._to_json())
+
 
 def _addSubTest(self, test_case, test, exc_info):
     if exc_info is not None:
@@ -78,7 +82,8 @@ def _addSubTest(self, test_case, test, exc_info):
         call_info = make_call_info(
             ExceptionInfo(exc_info), start=0, stop=0, duration=0, when="call"
         )
-        sub_report = SubTestReport.from_item_and_call(item=self, call=call_info)
+        report = self.ihook.pytest_runtest_makereport(item=self, call=call_info)
+        sub_report = SubTestReport.from_test_report(report)
         sub_report.context = SubTestContext(msg, dict(test.params))
         self.ihook.pytest_runtest_logreport(report=sub_report)
         if check_interactive_exception(call_info, sub_report):
@@ -171,7 +176,8 @@ class SubTests(object):
         call_info = make_call_info(
             exc_info, start=start, stop=stop, duration=duration, when="call"
         )
-        sub_report = SubTestReport.from_item_and_call(item=self.item, call=call_info)
+        report = self.ihook.pytest_runtest_makereport(item=self.item, call=call_info)
+        sub_report = SubTestReport.from_test_report(report)
         sub_report.context = SubTestContext(msg, kwargs.copy())
 
         captured.update_report(sub_report)
