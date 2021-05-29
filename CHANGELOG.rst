@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.5.0 (2021-05-29)
+------------------
+
+* Add support for ``pytest.mark.xfail`` (`#40`_).
+
+.. _#40: https://github.com/pytest-dev/pytest-subtests/pull/40
+
 0.4.0 (2020-12-13)
 ------------------
 
