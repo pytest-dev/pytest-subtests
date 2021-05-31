@@ -369,7 +369,9 @@ class TestCapture:
         )
         result = testdir.runpytest()
         result.stdout.fnmatch_lines(
-            ["*1 passed*",]
+            [
+                "*1 passed*",
+            ]
         )
 
 
