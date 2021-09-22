@@ -53,7 +53,7 @@ For now users can ignore those warnings by adding this to their configuration fi
 
     [pytest]
     filterwarnings =
-        ignore:A private pytest class or function was used.:PytestDeprecationWarning
+        ignore:A private pytest class or function was used.:pytest.PytestDeprecationWarning
 
 Installation
 ------------
