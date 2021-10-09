@@ -2,6 +2,7 @@ import sys
 
 import pytest
 
+
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
     """

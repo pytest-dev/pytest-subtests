@@ -202,17 +202,18 @@ def make_call_info(exc_info, *, start, stop, duration, when):
         # support for pytest<6: didn't have a duration parameter then
         return CallInfo(None, exc_info, start=start, stop=stop, when=when)
 
+
 @contextmanager
 def ignore_pytest_private_warning():
     import warnings
+
     with warnings.catch_warnings():
         warnings.filterwarnings(
-                'ignore',
-                "A private pytest class or function was used.",
-                category=pytest.PytestDeprecationWarning,
+            "ignore",
+            "A private pytest class or function was used.",
+            category=pytest.PytestDeprecationWarning,
         )
         yield
-
 
 
 @attr.s
