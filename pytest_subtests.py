@@ -138,9 +138,11 @@ class SubTests(object):
             capture_fixture_active = getattr(capman, "_capture_fixture", None)
 
         if option == "sys" and not capture_fixture_active:
-            fixture = CaptureFixture(SysCapture, self.request)
+            with ignore_pytest_private_warning():
+                fixture = CaptureFixture(SysCapture, self.request)
         elif option == "fd" and not capture_fixture_active:
-            fixture = CaptureFixture(FDCapture, self.request)
+            with ignore_pytest_private_warning():
+                fixture = CaptureFixture(FDCapture, self.request)
         else:
             fixture = None
 
@@ -199,6 +201,19 @@ def make_call_info(exc_info, *, start, stop, duration, when):
     except TypeError:
         # support for pytest<6: didn't have a duration parameter then
         return CallInfo(None, exc_info, start=start, stop=stop, when=when)
+
+
+@contextmanager
+def ignore_pytest_private_warning():
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            "A private pytest class or function was used.",
+            category=pytest.PytestDeprecationWarning,
+        )
+        yield
 
 
 @attr.s

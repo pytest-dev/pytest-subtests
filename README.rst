@@ -40,21 +40,6 @@ Requirements
 * ``Python`` >= 3.5.
 * ``pytest`` >= 5.3.
 
-pytest 6.2+
-^^^^^^^^^^^
-
-``pytest 6.2`` now issues a warning when internal classes are used by third-party code,
-which is the case for ``pytest-subtests`` which needs to use some internal classes
-to integrate with other pytest features (such as capturing and debugging).
-
-For now users can ignore those warnings by adding this to their configuration file:
-
-.. code-block:: ini
-
-    [pytest]
-    filterwarnings =
-        ignore:A private pytest class or function was used.:pytest.PytestDeprecationWarning
-
 Installation
 ------------
 
