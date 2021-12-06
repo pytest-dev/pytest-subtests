@@ -20,7 +20,6 @@ if sys.version_info[:2] < (3, 7):
     def nullcontext():
         yield
 
-
 else:
     from contextlib import nullcontext
 
