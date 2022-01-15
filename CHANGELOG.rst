@@ -4,6 +4,7 @@ CHANGELOG
 UNRELEASED
 ----------
 
+* Dropped support for Python 3.5.
 * Use ``SUBPASS`` and ``,`` for passed subtests instead of general ``PASSED``,
   ``SUBFAIL`` and ``u`` for failed ones instead of ``FAILED`` (`#30`_).
 

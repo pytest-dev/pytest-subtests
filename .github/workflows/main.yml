@@ -11,14 +11,12 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "windows-py35",
           "windows-py36",
           "windows-py37",
           "windows-py38",
           "windows-py39",
           "windows-py38-pytest53",
 
-          "ubuntu-py35",
           "ubuntu-py36",
           "ubuntu-py37",
           "ubuntu-py38",
@@ -27,10 +25,6 @@ jobs:
         ]
 
         include:
-          - name: "windows-py35"
-            python: "3.5"
-            os: windows-latest
-            tox_env: "py35"
           - name: "windows-py36"
             python: "3.6"
             os: windows-latest
@@ -56,10 +50,6 @@ jobs:
             os: windows-latest
             tox_env: "py38-pytest54"
 
-          - name: "ubuntu-py35"
-            python: "3.5"
-            os: ubuntu-latest
-            tox_env: "py35"
           - name: "ubuntu-py36"
             python: "3.6"
             os: ubuntu-latest

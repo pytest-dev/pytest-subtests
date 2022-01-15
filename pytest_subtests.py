@@ -25,7 +25,7 @@ else:
 
 
 @attr.s
-class SubTestContext(object):
+class SubTestContext:
     msg = attr.ib()
     kwargs = attr.ib()
 
@@ -41,17 +41,17 @@ class SubTestReport(TestReport):
     @property
     def head_line(self):
         _, _, domain = self.location
-        return "{} {}".format(domain, self.sub_test_description())
+        return f"{domain} {self.sub_test_description()}"
 
     def sub_test_description(self):
         parts = []
         if isinstance(self.context.msg, str):
-            parts.append("[{}]".format(self.context.msg))
+            parts.append(f"[{self.context.msg}]")
         if self.context.kwargs:
             params_desc = ", ".join(
-                "{}={!r}".format(k, v) for (k, v) in sorted(self.context.kwargs.items())
+                f"{k}={v!r}" for (k, v) in sorted(self.context.kwargs.items())
             )
-            parts.append("({})".format(params_desc))
+            parts.append(f"({params_desc})")
         return " ".join(parts) or "(<subtest>)"
 
     def _to_json(self):
@@ -114,7 +114,7 @@ def subtests(request):
 
 
 @attr.s
-class SubTests(object):
+class SubTests:
     ihook = attr.ib()
     suspend_capture_ctx = attr.ib()
     request = attr.ib()
