@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+UNRELEASED
+----------
+
+* Use ``SUBPASS`` and ``,`` for passed subtests instead of general ``PASSED``,
+  ``SUBFAIL`` and ``u`` for failed ones instead of ``FAILED`` (`#30`_).
+
+.. _#30: https://github.com/pytest-dev/pytest-subtests/pull/30
+
 0.5.0 (2021-05-29)
 ------------------
 
