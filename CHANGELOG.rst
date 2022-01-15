@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-UNRELEASED
-----------
+0.6.0 (2022-01-15)
+------------------
 
 * Dropped support for Python 3.5.
 * Users no longer need to configure a warnings filter for the internal ``A private pytest class or function was used`` pytest warning (`#52`_).
