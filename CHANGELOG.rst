@@ -5,9 +5,9 @@ UNRELEASED
 ----------
 
 * Dropped support for Python 3.5.
-* Use ``SUBPASS`` and ``,`` for passed subtests instead of general ``PASSED``,
-  ``SUBFAIL`` and ``u`` for failed ones instead of ``FAILED`` (`#30`_).
 * Users no longer need to configure a warnings filter for the internal ``A private pytest class or function was used`` pytest warning (`#52`_).
+* **Experimental**: Use ``SUBPASS`` and ``,`` for passed subtests instead of general ``PASSED``,
+  ``SUBFAIL`` and ``u`` for failed ones instead of ``FAILED`` (`#30`_).
 
 .. _#30: https://github.com/pytest-dev/pytest-subtests/pull/30
 .. _#52: https://github.com/pytest-dev/pytest-subtests/pull/52

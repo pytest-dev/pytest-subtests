@@ -242,6 +242,9 @@ def pytest_report_teststatus(report):
     if report.when != "call" or not isinstance(report, SubTestReport):
         return
 
+    if hasattr(report, "wasxfail"):
+        return None
+
     outcome = report.outcome
     if report.passed:
         return outcome, ",", "SUBPASS"
