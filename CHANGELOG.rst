@@ -17,26 +17,26 @@ CHANGELOG
 0.5.0 (2021-05-29)
 ------------------
 
-* Add support for ``pytest.mark.xfail`` (`#40`_).
+* Added support for ``pytest.mark.xfail`` (`#40`_).
 
 .. _#40: https://github.com/pytest-dev/pytest-subtests/pull/40
 
 0.4.0 (2020-12-13)
 ------------------
 
-* Add support for ``--pdb`` (`#22`_).
+* Added support for ``--pdb`` (`#22`_).
 
 .. _#22: https://github.com/pytest-dev/pytest-subtests/issues/22
 
 0.3.2 (2020-08-01)
 ------------------
 
-* Fix pytest 6.0 support.
+* Fixed pytest 6.0 support.
 
 0.3.1 (2020-05-20)
 ------------------
 
-* Fix pytest 5.4 support.
+* Fixed pytest 5.4 support.
 
 0.3.0 (2020-01-22)
 ------------------
@@ -49,7 +49,7 @@ CHANGELOG
 0.2.1 (2019-04-04)
 ------------------
 
-* Fix verbose output reporting on Linux (`#7`_).
+* Fixed verbose output reporting on Linux (`#7`_).
 
 .. _#7: https://github.com/pytest-dev/pytest-subtests/issues/7
 
