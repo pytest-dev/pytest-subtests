@@ -4,6 +4,7 @@ CHANGELOG
 0.6.0 (2022-01-15)
 ------------------
 
+* ``pytest>=6.0`` is now required.
 * Dropped support for Python 3.5.
 * Users no longer need to configure a warnings filter for the internal ``A private pytest class or function was used`` pytest warning (`#52`_).
 * **Experimental**: Use ``SUBPASS`` and ``,`` for passed subtests instead of general ``PASSED``,

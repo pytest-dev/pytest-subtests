@@ -129,12 +129,8 @@ class SubTests:
 
         # capsys or capfd are active, subtest should not capture
 
-        # pytest<5.4 support: node holds the active fixture
-        capture_fixture_active = getattr(self.request.node, "_capture_fixture", None)
-        if capture_fixture_active is None:
-            # pytest>=5.4 support: capture manager plugin holds the active fixture
-            capman = self.request.config.pluginmanager.getplugin("capturemanager")
-            capture_fixture_active = getattr(capman, "_capture_fixture", None)
+        capman = self.request.config.pluginmanager.getplugin("capturemanager")
+        capture_fixture_active = getattr(capman, "_capture_fixture", None)
 
         if option == "sys" and not capture_fixture_active:
             with ignore_pytest_private_warning():
