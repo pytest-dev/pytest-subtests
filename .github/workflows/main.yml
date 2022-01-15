@@ -11,26 +11,20 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "windows-py35",
           "windows-py36",
           "windows-py37",
           "windows-py38",
           "windows-py39",
-          "windows-py38-pytest53",
+          "windows-py310",
 
-          "ubuntu-py35",
           "ubuntu-py36",
           "ubuntu-py37",
           "ubuntu-py38",
           "ubuntu-py39",
-          "ubuntu-py38-pytest53",
+          "ubuntu-py310",
         ]
 
         include:
-          - name: "windows-py35"
-            python: "3.5"
-            os: windows-latest
-            tox_env: "py35"
           - name: "windows-py36"
             python: "3.6"
             os: windows-latest
@@ -47,19 +41,11 @@ jobs:
             python: "3.9"
             os: windows-latest
             tox_env: "py39"
-          - name: "windows-py38-pytest53"
-            python: "3.8"
+          - name: "windows-py310"
+            python: "3.10"
             os: windows-latest
-            tox_env: "py38-pytest53"
-          - name: "windows-py38-pytest54"
-            python: "3.8"
-            os: windows-latest
-            tox_env: "py38-pytest54"
+            tox_env: "py310"
 
-          - name: "ubuntu-py35"
-            python: "3.5"
-            os: ubuntu-latest
-            tox_env: "py35"
           - name: "ubuntu-py36"
             python: "3.6"
             os: ubuntu-latest
@@ -76,14 +62,10 @@ jobs:
             python: "3.9"
             os: ubuntu-latest
             tox_env: "py39"
-          - name: "ubuntu-py38-pytest53"
-            python: "3.8"
+          - name: "ubuntu-py310"
+            python: "3.10"
             os: ubuntu-latest
-            tox_env: "py38-pytest53"
-          - name: "ubuntu-py38-pytest54"
-            python: "3.8"
-            os: ubuntu-latest
-            tox_env: "py38-pytest54"
+            tox_env: "py310"
 
     steps:
     - uses: actions/checkout@v1

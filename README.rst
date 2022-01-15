@@ -34,12 +34,6 @@ Features
 * New ``subtests`` fixture, providing similar functionality for pure pytest tests.
 
 
-Requirements
-------------
-
-* ``Python`` >= 3.5.
-* ``pytest`` >= 5.3.
-
 Installation
 ------------
 
@@ -157,7 +151,7 @@ Contributions are very welcome. Tests can be run with `tox`_:
 
 .. code-block::
 
-    tox -e py37,linting
+    tox -e py37
 
 License
 -------

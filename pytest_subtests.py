@@ -25,7 +25,7 @@ else:
 
 
 @attr.s
-class SubTestContext(object):
+class SubTestContext:
     msg = attr.ib()
     kwargs = attr.ib()
 
@@ -41,17 +41,17 @@ class SubTestReport(TestReport):
     @property
     def head_line(self):
         _, _, domain = self.location
-        return "{} {}".format(domain, self.sub_test_description())
+        return f"{domain} {self.sub_test_description()}"
 
     def sub_test_description(self):
         parts = []
         if isinstance(self.context.msg, str):
-            parts.append("[{}]".format(self.context.msg))
+            parts.append(f"[{self.context.msg}]")
         if self.context.kwargs:
             params_desc = ", ".join(
-                "{}={!r}".format(k, v) for (k, v) in sorted(self.context.kwargs.items())
+                f"{k}={v!r}" for (k, v) in sorted(self.context.kwargs.items())
             )
-            parts.append("({})".format(params_desc))
+            parts.append(f"({params_desc})")
         return " ".join(parts) or "(<subtest>)"
 
     def _to_json(self):
@@ -114,7 +114,7 @@ def subtests(request):
 
 
 @attr.s
-class SubTests(object):
+class SubTests:
     ihook = attr.ib()
     suspend_capture_ctx = attr.ib()
     request = attr.ib()
@@ -129,12 +129,8 @@ class SubTests(object):
 
         # capsys or capfd are active, subtest should not capture
 
-        # pytest<5.4 support: node holds the active fixture
-        capture_fixture_active = getattr(self.request.node, "_capture_fixture", None)
-        if capture_fixture_active is None:
-            # pytest>=5.4 support: capture manager plugin holds the active fixture
-            capman = self.request.config.pluginmanager.getplugin("capturemanager")
-            capture_fixture_active = getattr(capman, "_capture_fixture", None)
+        capman = self.request.config.pluginmanager.getplugin("capturemanager")
+        capture_fixture_active = getattr(capman, "_capture_fixture", None)
 
         if option == "sys" and not capture_fixture_active:
             with ignore_pytest_private_warning():
@@ -241,6 +237,9 @@ def pytest_report_from_serializable(data):
 def pytest_report_teststatus(report):
     if report.when != "call" or not isinstance(report, SubTestReport):
         return
+
+    if hasattr(report, "wasxfail"):
+        return None
 
     outcome = report.outcome
     if report.passed:
