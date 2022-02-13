@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.7.0 (2022-02-13)
+------------------
+
+* Fixed support for pytest 7.0, and ``pytest>=7.0`` is now required.
+
+
 0.6.0 (2022-01-15)
 ------------------
 

@@ -79,7 +79,11 @@ def _addSubTest(self, test_case, test, exc_info):
     if exc_info is not None:
         msg = test._message if isinstance(test._message, str) else None
         call_info = make_call_info(
-            ExceptionInfo(exc_info), start=0, stop=0, duration=0, when="call"
+            ExceptionInfo(exc_info, _ispytest=True),
+            start=0,
+            stop=0,
+            duration=0,
+            when="call",
         )
         report = self.ihook.pytest_runtest_makereport(item=self, call=call_info)
         sub_report = SubTestReport._from_test_report(report)
@@ -189,13 +193,15 @@ class SubTests:
 
 
 def make_call_info(exc_info, *, start, stop, duration, when):
-    try:
-        return CallInfo(
-            None, exc_info, start=start, stop=stop, duration=duration, when=when
-        )
-    except TypeError:
-        # support for pytest<6: didn't have a duration parameter then
-        return CallInfo(None, exc_info, start=start, stop=stop, when=when)
+    return CallInfo(
+        None,
+        exc_info,
+        start=start,
+        stop=stop,
+        duration=duration,
+        when=when,
+        _ispytest=True,
+    )
 
 
 @contextmanager
