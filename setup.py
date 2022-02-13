@@ -1,13 +1,11 @@
-import codecs
-import os
+from pathlib import Path
 
 from setuptools import setup
 
 
-def read(fname):
-    file_path = os.path.join(os.path.dirname(__file__), fname)
-    return codecs.open(file_path, encoding="utf-8").read()
-
+long_description = (
+    Path(__file__).parent.joinpath("README.rst").read_text(encoding="UTF-8")
+)
 
 setup(
     name="pytest-subtests",
@@ -18,12 +16,12 @@ setup(
     license="MIT",
     url="https://github.com/pytest-dev/pytest-subtests",
     description="unittest subTest() support and subtests fixture",
-    long_description=read("README.rst"),
+    long_description=long_description,
     py_modules=["pytest_subtests"],
     use_scm_version=True,
     setup_requires=["setuptools-scm", "setuptools>=40.0"],
     python_requires=">=3.6",
-    install_requires=["pytest>=6.0"],
+    install_requires=["pytest>=7.0"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Framework :: Pytest",
