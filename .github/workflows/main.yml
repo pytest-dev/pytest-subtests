@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "windows-py36",
           "windows-py37",
           "windows-py38",
           "windows-py39",
@@ -28,10 +27,6 @@ jobs:
         ]
 
         include:
-          - name: "windows-py36"
-            python: "3.6"
-            os: windows-latest
-            tox_env: "py36"
           - name: "windows-py37"
             python: "3.7"
             os: windows-latest
