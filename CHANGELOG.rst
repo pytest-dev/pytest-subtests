@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.8.0 (2022-05-26)
+------------------
+
+* Now passing subtests are shown in the test run summary at the end (for example: ``10 failed, 1 passed, 10 subtests passed in 0.10s``) (`#70`_).
+
+.. _#70: https://github.com/pytest-dev/pytest-subtests/pull/70
+
 0.7.0 (2022-02-13)
 ------------------
 

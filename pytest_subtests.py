@@ -35,10 +35,6 @@ class SubTestReport(TestReport):
     context = attr.ib()
 
     @property
-    def count_towards_summary(self):
-        return not self.passed
-
-    @property
     def head_line(self):
         _, _, domain = self.location
         return f"{domain} {self.sub_test_description()}"
@@ -249,7 +245,7 @@ def pytest_report_teststatus(report):
 
     outcome = report.outcome
     if report.passed:
-        return outcome, ",", "SUBPASS"
+        return f"subtests {outcome}", ",", "SUBPASS"
     elif report.skipped:
         return outcome, "-", "SUBSKIP"
     elif outcome == "failed":
