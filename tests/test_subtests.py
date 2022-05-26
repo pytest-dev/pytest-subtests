@@ -32,7 +32,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 2 failed, 1 passed in *",
+            "* 2 failed, 1 passed, 3 subtests passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -64,7 +64,7 @@ class TestFixture:
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
             "* test_foo [[]custom[]] (i=3) *",
-            "* 2 failed, 1 passed in *",
+            "* 2 failed, 1 passed, 3 subtests passed in *",
         ]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -86,7 +86,7 @@ class TestFixture:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
             expected_lines = ["gw0 [1]"]
-        expected_lines += ["* 1 passed, 3 skipped in *"]
+        expected_lines += ["* 1 passed, 3 skipped, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
     def test_xfail(self, testdir, mode):
@@ -107,7 +107,7 @@ class TestFixture:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
             expected_lines = ["gw0 [1]"]
-        expected_lines += ["* 1 passed, 3 xfailed in *"]
+        expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
 
