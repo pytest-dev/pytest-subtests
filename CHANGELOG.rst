@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+Unreleased
+----------
+
+* Dropped support for Python 3.6.
+
 0.8.0 (2022-05-26)
 ------------------
 

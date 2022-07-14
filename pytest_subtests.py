@@ -1,6 +1,6 @@
-import sys
 import time
 from contextlib import contextmanager
+from contextlib import nullcontext
 
 import attr
 import pytest
@@ -13,15 +13,6 @@ from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
-
-if sys.version_info[:2] < (3, 7):
-
-    @contextmanager
-    def nullcontext():
-        yield
-
-else:
-    from contextlib import nullcontext
 
 
 @attr.s
