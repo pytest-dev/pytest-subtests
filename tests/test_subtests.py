@@ -2,6 +2,8 @@ import sys
 
 import pytest
 
+IS_PY311 = sys.version_info[:2] >= (3, 11)
+
 
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
@@ -137,13 +139,14 @@ class TestSubTest:
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_simple_terminal_normal(self, simple_script, testdir, runner):
 
+        suffix = ".test_foo" if IS_PY311 else ""
         if runner == "unittest":
             result = testdir.run(sys.executable, simple_script)
             result.stderr.fnmatch_lines(
                 [
-                    "FAIL: test_foo (__main__.T) [custom] (i=1)",
+                    f"FAIL: test_foo (__main__.T{suffix}) [custom] (i=1)",
                     "AssertionError: 1 != 0",
-                    "FAIL: test_foo (__main__.T) [custom] (i=3)",
+                    f"FAIL: test_foo (__main__.T{suffix}) [custom] (i=3)",
                     "AssertionError: 1 != 0",
                     "Ran 1 test in *",
                     "FAILED (failures=2)",
@@ -171,14 +174,15 @@ class TestSubTest:
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_simple_terminal_verbose(self, simple_script, testdir, runner):
 
+        suffix = ".test_foo" if IS_PY311 else ""
         if runner == "unittest":
             result = testdir.run(sys.executable, simple_script, "-v")
             result.stderr.fnmatch_lines(
                 [
-                    "test_foo (__main__.T) ... ",
-                    "FAIL: test_foo (__main__.T) [custom] (i=1)",
+                    f"test_foo (__main__.T{suffix}) ... ",
+                    f"FAIL: test_foo (__main__.T{suffix}) [custom] (i=1)",
                     "AssertionError: 1 != 0",
-                    "FAIL: test_foo (__main__.T) [custom] (i=3)",
+                    f"FAIL: test_foo (__main__.T{suffix}) [custom] (i=3)",
                     "AssertionError: 1 != 0",
                     "Ran 1 test in *",
                     "FAILED (failures=2)",
