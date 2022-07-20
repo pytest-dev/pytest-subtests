@@ -18,11 +18,13 @@ jobs:
           "windows-py38",
           "windows-py39",
           "windows-py310",
+          "windows-py311",
 
           "ubuntu-py37",
           "ubuntu-py38",
           "ubuntu-py39",
           "ubuntu-py310",
+          "ubuntu-py311",
         ]
 
         include:
@@ -42,6 +44,10 @@ jobs:
             python: "3.10"
             os: windows-latest
             tox_env: "py310"
+          - name: "windows-py311"
+            python: "3.11-dev"
+            os: windows-latest
+            tox_env: "py311"
 
           - name: "ubuntu-py37"
             python: "3.7"
@@ -59,11 +65,15 @@ jobs:
             python: "3.10"
             os: ubuntu-latest
             tox_env: "py310"
+          - name: "ubuntu-py311"
+            python: "3.11-dev"
+            os: ubuntu-latest
+            tox_env: "py311"
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
     - name: Install tox
