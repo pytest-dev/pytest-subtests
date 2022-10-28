@@ -1,9 +1,10 @@
 CHANGELOG
 =========
 
-Unreleased
-----------
+0.9.0 (2022-10-28)
+------------------
 
+* Python 3.11 is officially supported.
 * Dropped support for Python 3.6.
 
 0.8.0 (2022-05-26)
