@@ -88,7 +88,7 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure():
-    if hasattr(TestCaseFunction, "_addSubTest"):
+    if hasattr(TestCaseFunction, "addSubTest"):
         del TestCaseFunction.addSubTest
     if hasattr(TestCaseFunction, "failfast"):
         del TestCaseFunction.failfast
