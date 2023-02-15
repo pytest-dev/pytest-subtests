@@ -15,6 +15,17 @@ from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
 
 
+def pytest_addoption(parser):
+    group = parser.getgroup("subtests")
+    group.addoption(
+        "--disable-shortletter-output",
+        action="store_true",
+        dest="disable_shortletter",
+        default=False,
+        help="Disables subtest output in non-verbose mode",
+    )
+
+
 @attr.s
 class SubTestContext:
     msg = attr.ib()
@@ -227,7 +238,7 @@ def pytest_report_from_serializable(data):
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_report_teststatus(report):
+def pytest_report_teststatus(report, config):
     if report.when != "call" or not isinstance(report, SubTestReport):
         return
 
@@ -236,8 +247,11 @@ def pytest_report_teststatus(report):
 
     outcome = report.outcome
     if report.passed:
-        return f"subtests {outcome}", ",", "SUBPASS"
+        short = "" if config.option.disable_shortletter else ","
+        return f"subtests {outcome}", short, "SUBPASS"
     elif report.skipped:
-        return outcome, "-", "SUBSKIP"
+        short = "" if config.option.disable_shortletter else "-"
+        return outcome, short, "SUBSKIP"
     elif outcome == "failed":
-        return outcome, "u", "SUBFAIL"
+        short = "" if config.option.disable_shortletter else "u"
+        return outcome, short, "SUBFAIL"
