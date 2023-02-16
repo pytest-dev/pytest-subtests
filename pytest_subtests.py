@@ -18,11 +18,11 @@ from _pytest.unittest import TestCaseFunction
 def pytest_addoption(parser):
     group = parser.getgroup("subtests")
     group.addoption(
-        "--disable-shortletter-output",
+        "--no-subtests-shortletter",
         action="store_true",
-        dest="disable_shortletter",
+        dest="no_subtests_shortletter",
         default=False,
-        help="Disables subtest output in non-verbose mode",
+        help="Disables subtest output 'dots' in non-verbose mode (EXPERIMENTAL)",
     )
 
 
@@ -247,11 +247,11 @@ def pytest_report_teststatus(report, config):
 
     outcome = report.outcome
     if report.passed:
-        short = "" if config.option.disable_shortletter else ","
+        short = "" if config.option.no_subtests_shortletter else ","
         return f"subtests {outcome}", short, "SUBPASS"
     elif report.skipped:
-        short = "" if config.option.disable_shortletter else "-"
+        short = "" if config.option.no_subtests_shortletter else "-"
         return outcome, short, "SUBSKIP"
     elif outcome == "failed":
-        short = "" if config.option.disable_shortletter else "u"
+        short = "" if config.option.no_subtests_shortletter else "u"
         return outcome, short, "SUBFAIL"
