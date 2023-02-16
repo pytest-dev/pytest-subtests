@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-0.10.0 (2023-02-15)
+0.10.0 (UNRELEASED)
 -------------------
 
 * Added experimental support for suppressing subtest output dots in non-verbose mode with ``--no-subtests-shortletter``.
