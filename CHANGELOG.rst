@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-0.10.0 (UNRELEASED)
+0.10.0 (2022-02-15)
 -------------------
 
-* Added experimental support for suppressing subtest output dots in non-verbose mode with ``--no-subtests-shortletter``.
+* Added experimental support for suppressing subtest output dots in non-verbose mode with ``--no-subtests-shortletter`` -- this allows the native pytest column calculations to not be disrupted and minimizes unneeded output for large CI systems.
 
 0.9.0 (2022-10-28)
 ------------------
