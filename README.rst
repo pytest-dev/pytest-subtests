@@ -15,7 +15,7 @@ unittest ``subTest()`` support and ``subtests`` fixture.
     :target: https://pypi.org/project/pytest-subtests
     :alt: Python versions
 
-.. image:: https://github.com/pytest-dev/pytest-subtests/workflows/build/badge.svg
+.. image:: https://github.com/pytest-dev/pytest-subtests/workflows/test/badge.svg
   :target: https://github.com/pytest-dev/pytest-subtests/actions
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
