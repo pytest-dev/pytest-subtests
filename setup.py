@@ -17,6 +17,7 @@ setup(
     url="https://github.com/pytest-dev/pytest-subtests",
     description="unittest subTest() support and subtests fixture",
     long_description=long_description,
+    long_description_content_type="text/x-rst",
     py_modules=["pytest_subtests"],
     use_scm_version=True,
     setup_requires=["setuptools-scm", "setuptools>=40.0"],
