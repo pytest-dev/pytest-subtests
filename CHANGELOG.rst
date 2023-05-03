@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+UNRELEASED
+----------
+
+* Now the ``msg`` contents of a subtest is displayed when running pytest with ``-v`` (`#6`_).
+
+.. _#6: https://github.com/pytest-dev/pytest-subtests/issues/6
+
 0.10.0 (2022-02-15)
 -------------------
 
