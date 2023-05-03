@@ -246,12 +246,13 @@ def pytest_report_teststatus(report, config):
         return None
 
     outcome = report.outcome
+    description = report.sub_test_description()
     if report.passed:
         short = "" if config.option.no_subtests_shortletter else ","
-        return f"subtests {outcome}", short, "SUBPASS"
+        return f"subtests {outcome}", short, f"{description} SUBPASS"
     elif report.skipped:
         short = "" if config.option.no_subtests_shortletter else "-"
-        return outcome, short, "SUBSKIP"
+        return outcome, short, f"{description} SUBSKIP"
     elif outcome == "failed":
         short = "" if config.option.no_subtests_shortletter else "u"
-        return outcome, short, "SUBFAIL"
+        return outcome, short, f"{description} SUBFAIL"

@@ -43,11 +43,11 @@ class TestFixture:
             result = testdir.runpytest("-v")
             expected_lines = [
                 "*collected 1 item",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=0) SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=1) SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=2) SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=3) SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=4) SUBPASS *100%*",
                 "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
             ]
         else:
@@ -193,8 +193,8 @@ class TestSubTest:
                 result = testdir.runpytest(simple_script, "-v")
                 expected_lines = [
                     "*collected 1 item",
-                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
-                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo [[]custom[]] (i=1) SUBFAIL *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo [[]custom[]] (i=3) SUBFAIL *100%*",
                     "test_simple_terminal_verbose.py::T::test_foo PASSED *100%*",
                 ]
             else:
