@@ -4,7 +4,6 @@ import pytest
 
 IS_PY311 = sys.version_info[:2] >= (3, 11)
 
-import pathlib
 
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
@@ -364,7 +363,6 @@ class TestCapture:
                 "*1 passed*",
             ]
         )
-
 
 
 class TestLogging:

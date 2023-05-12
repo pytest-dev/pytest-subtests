@@ -148,7 +148,6 @@ class SubTests:
             fixture._start()
 
         captured = Captured()
-
         try:
             yield captured
         finally:
