@@ -4,6 +4,7 @@ import pytest
 
 IS_PY311 = sys.version_info[:2] >= (3, 11)
 
+import pathlib
 
 @pytest.mark.parametrize("mode", ["normal", "xdist"])
 class TestFixture:
@@ -356,6 +357,66 @@ class TestCapture:
         """.format(
                 fixture=fixture
             )
+        )
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(
+            [
+                "*1 passed*",
+            ]
+        )
+
+
+
+class TestLogging:
+    def create_file(self, testdir):
+        testdir.makepyfile(
+            """
+                    import logging
+
+                    def test_foo(subtests):
+                        logging.info("before")
+
+                        with subtests.test("sub1"):
+                            print("sub1 stdout")
+                            logging.info("sub1 logging")
+
+                        with subtests.test("sub2"):
+                            print("sub2 stdout")
+                            logging.info("sub2 logging")
+                            assert False
+                """
+        )
+
+    def test_capturing(self, testdir):
+        self.create_file(testdir)
+        result = testdir.runpytest("--log-level=INFO")
+        result.stdout.fnmatch_lines(
+            [
+                "*___ test_foo [[]sub2[]] __*",
+                "*-- Captured stdout call --*",
+                "sub2 stdout",
+                "*-- Captured log call ---*",
+                "INFO     root:test_capturing.py:12 sub2 logging",
+                "*== short test summary info ==*"
+            ]
+        )
+
+    def test_caplog(self, testdir):
+        testdir.makepyfile(
+            """
+            import logging
+
+            def test(subtests, caplog):
+                caplog.set_level(logging.INFO)
+                logging.info("start test")
+
+                with subtests.test("sub1"):
+                    logging.info("inside %s", "subtest1")
+                
+                assert len(caplog.records) == 2
+                assert caplog.records[0].getMessage() == "start test"
+                assert caplog.records[1].getMessage() == "inside subtest1"
+            """
         )
         result = testdir.runpytest()
         result.stdout.fnmatch_lines(
