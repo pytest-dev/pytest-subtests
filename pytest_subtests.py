@@ -173,7 +173,7 @@ class SubTests:
         precise_start = time.perf_counter()
         exc_info = None
 
-        with self._capturing_output() as captured, self._capturing_logs() as capturedlogs:
+        with self._capturing_output() as captured_output, self._capturing_logs() as captured_logs:
             try:
                 yield
             except (Exception, OutcomeException):
