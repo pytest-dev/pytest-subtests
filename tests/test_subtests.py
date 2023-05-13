@@ -369,20 +369,20 @@ class TestLogging:
     def create_file(self, testdir):
         testdir.makepyfile(
             """
-                    import logging
+            import logging
 
-                    def test_foo(subtests):
-                        logging.info("before")
+            def test_foo(subtests):
+                logging.info("before")
 
-                        with subtests.test("sub1"):
-                            print("sub1 stdout")
-                            logging.info("sub1 logging")
+                with subtests.test("sub1"):
+                    print("sub1 stdout")
+                    logging.info("sub1 logging")
 
-                        with subtests.test("sub2"):
-                            print("sub2 stdout")
-                            logging.info("sub2 logging")
-                            assert False
-                """
+                with subtests.test("sub2"):
+                    print("sub2 stdout")
+                    logging.info("sub2 logging")
+                    assert False
+            """
         )
 
     def test_capturing(self, testdir):
