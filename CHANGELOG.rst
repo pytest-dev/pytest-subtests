@@ -4,9 +4,13 @@ CHANGELOG
 UNRELEASED
 ----------
 
+* Passing subtests no longer turn the pytest output to yellow (as if warnings have been issued) (`#86`_). Thanks to `Andrew-Brock`_ for providing the solution.
 * Now the ``msg`` contents of a subtest is displayed when running pytest with ``-v`` (`#6`_).
 
 .. _#6: https://github.com/pytest-dev/pytest-subtests/issues/6
+.. _#86: https://github.com/pytest-dev/pytest-subtests/issues/86
+
+.. _`Andrew-Brock`: https://github.com/Andrew-Brock
 
 0.10.0 (2022-02-15)
 -------------------
