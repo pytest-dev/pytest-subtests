@@ -29,7 +29,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
 
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
@@ -54,7 +54,7 @@ class TestFixture:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1", "-v")
             expected_lines = [
-                "gw0 [1]",
+                "1 worker [1 item]",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
@@ -87,7 +87,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
         expected_lines += ["* 1 passed, 3 skipped, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -108,7 +108,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
         expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -159,7 +159,7 @@ class TestSubTest:
             else:
                 pytest.importorskip("xdist")
                 result = testdir.runpytest(simple_script, "-n1")
-                expected_lines = ["gw0 [1]"]
+                expected_lines = ["1 worker [1 item]"]
             result.stdout.fnmatch_lines(
                 expected_lines
                 + [
@@ -201,7 +201,7 @@ class TestSubTest:
                 pytest.importorskip("xdist")
                 result = testdir.runpytest(simple_script, "-n1", "-v")
                 expected_lines = [
-                    "gw0 [1]",
+                    "1 worker [1 item]",
                     "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* PASSED test_simple_terminal_verbose.py::T::test_foo*",
