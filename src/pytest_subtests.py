@@ -98,6 +98,27 @@ def pytest_configure(config):
     TestCaseFunction.addSubTest = _addSubTest
     TestCaseFunction.failfast = False
 
+    # Hack (#86): the terminal does not know about the "subtests"
+    # status, so it will by default turn the output to yellow.
+    # This forcibly adds the new 'subtests' status.
+    import _pytest.terminal
+
+    new_types = tuple(
+        f"subtests {outcome}" for outcome in ("passed", "failed", "skipped")
+    )
+    # We need to check if we are not re-adding because we run our own tests
+    # with pytester in-process mode, so this will be called multiple times.
+    if new_types[0] not in _pytest.terminal.KNOWN_TYPES:
+        _pytest.terminal.KNOWN_TYPES = _pytest.terminal.KNOWN_TYPES + new_types
+
+    _pytest.terminal._color_for_type.update(
+        {
+            f"subtests {outcome}": _pytest.terminal._color_for_type[outcome]
+            for outcome in ("passed", "failed", "skipped")
+            if outcome in _pytest.terminal._color_for_type
+        }
+    )
+
 
 def pytest_unconfigure():
     if hasattr(TestCaseFunction, "addSubTest"):
@@ -265,12 +286,13 @@ def pytest_report_teststatus(report, config):
         return None
 
     outcome = report.outcome
+    description = report.sub_test_description()
     if report.passed:
         short = "" if config.option.no_subtests_shortletter else ","
-        return f"subtests {outcome}", short, "SUBPASS"
+        return f"subtests {outcome}", short, f"{description} SUBPASS"
     elif report.skipped:
         short = "" if config.option.no_subtests_shortletter else "-"
-        return outcome, short, "SUBSKIP"
+        return outcome, short, f"{description} SUBSKIP"
     elif outcome == "failed":
         short = "" if config.option.no_subtests_shortletter else "u"
-        return outcome, short, "SUBFAIL"
+        return outcome, short, f"{description} SUBFAIL"

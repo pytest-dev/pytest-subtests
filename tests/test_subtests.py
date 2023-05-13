@@ -29,7 +29,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
 
         expected_lines += [
             "* test_foo [[]custom[]] (i=1) *",
@@ -43,18 +43,18 @@ class TestFixture:
             result = testdir.runpytest("-v")
             expected_lines = [
                 "*collected 1 item",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBFAIL *100%*",
-                "test_simple_terminal_verbose.py::test_foo SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=0) SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=1) SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=2) SUBPASS *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=3) SUBFAIL *100%*",
+                "test_simple_terminal_verbose.py::test_foo [[]custom[]] (i=4) SUBPASS *100%*",
                 "test_simple_terminal_verbose.py::test_foo PASSED *100%*",
             ]
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1", "-v")
             expected_lines = [
-                "gw0 [1]",
+                "1 worker [1 item]",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
                 "*gw0*100%* test_simple_terminal_verbose.py::test_foo*",
@@ -87,7 +87,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
         expected_lines += ["* 1 passed, 3 skipped, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -108,7 +108,7 @@ class TestFixture:
         else:
             pytest.importorskip("xdist")
             result = testdir.runpytest("-n1")
-            expected_lines = ["gw0 [1]"]
+            expected_lines = ["1 worker [1 item]"]
         expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
@@ -159,7 +159,7 @@ class TestSubTest:
             else:
                 pytest.importorskip("xdist")
                 result = testdir.runpytest(simple_script, "-n1")
-                expected_lines = ["gw0 [1]"]
+                expected_lines = ["1 worker [1 item]"]
             result.stdout.fnmatch_lines(
                 expected_lines
                 + [
@@ -193,15 +193,15 @@ class TestSubTest:
                 result = testdir.runpytest(simple_script, "-v")
                 expected_lines = [
                     "*collected 1 item",
-                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
-                    "test_simple_terminal_verbose.py::T::test_foo SUBFAIL *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo [[]custom[]] (i=1) SUBFAIL *100%*",
+                    "test_simple_terminal_verbose.py::T::test_foo [[]custom[]] (i=3) SUBFAIL *100%*",
                     "test_simple_terminal_verbose.py::T::test_foo PASSED *100%*",
                 ]
             else:
                 pytest.importorskip("xdist")
                 result = testdir.runpytest(simple_script, "-n1", "-v")
                 expected_lines = [
-                    "gw0 [1]",
+                    "1 worker [1 item]",
                     "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* SUBFAIL test_simple_terminal_verbose.py::T::test_foo*",
                     "*gw0*100%* PASSED test_simple_terminal_verbose.py::T::test_foo*",
