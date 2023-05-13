@@ -181,12 +181,15 @@ class SubTests:
     @contextmanager
     def _capturing_logs(self):
         logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
-        handler = LogCaptureHandler()
-        handler.setFormatter(logging_plugin.formatter)
-        
-        captured_logs = CapturedLogs(handler)
-        with catching_logs(handler):
-            yield captured_logs
+        if logging_plugin is None:
+            yield NullCapturedLogs()
+        else:
+            handler = LogCaptureHandler()
+            handler.setFormatter(logging_plugin.formatter)
+            
+            captured_logs = CapturedLogs(handler)
+            with catching_logs(handler):
+                yield captured_logs
 
     @contextmanager
     def test(self, msg=None, **kwargs):
@@ -211,8 +214,8 @@ class SubTests:
         sub_report = SubTestReport._from_test_report(report)
         sub_report.context = SubTestContext(msg, kwargs.copy())
 
-        captured.update_report(sub_report)
-        capturedlogs.update_report(sub_report)
+        captured_output.update_report(sub_report)
+        captured_logs.update_report(sub_report)
     
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
@@ -259,12 +262,18 @@ class Captured:
         if self.err:
             report.sections.append(("Captured stderr call", self.err))
 
+
 class CapturedLogs:
     def __init__(self, handler):
         self._handler = handler
     
     def update_report(self, report):
         report.sections.append(("Captured log call", self._handler.stream.getvalue()))
+
+
+class NullCapturedLogs:   
+    def update_report(self, report):
+        pass
         
 
 def pytest_report_to_serializable(report):

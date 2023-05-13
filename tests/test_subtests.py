@@ -423,6 +423,32 @@ class TestLogging:
             ]
         )
 
+    def test_no_logging(self, testdir):
+        testdir.makepyfile(
+            """
+            import logging
+
+            def test(subtests):
+                logging.info("start log line")
+
+                with subtests.test("sub passing"):
+                    logging.info("inside %s", "passing log line")
+                
+                with subtests.test("sub failing"):
+                    logging.info("inside %s", "failing log line")
+                    assert False
+
+                logging.info("end log line")
+            """
+        )
+        result = testdir.runpytest("-p no:logging")
+        result.stdout.fnmatch_lines(
+            [
+                "*1 passed*",
+            ]
+        )
+        result.stdout.no_fnmatch_line("*root:test_no_logging.py*log line*")
+
 
 class TestDebugging:
     """Check --pdb support for subtests fixture and TestCase.subTest."""
