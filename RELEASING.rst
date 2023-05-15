@@ -22,16 +22,12 @@ Steps
 
 To publish a new release ``X.Y.Z``, the steps are as follows:
 
-#. Create a new branch named ``release-X.Y.Z`` from the latest ``master``.
+#. Create a new branch named ``release-X.Y.Z`` from the latest ``main``.
 
 #. Update the ``CHANGELOG.rst`` file with the new release information.
 
-#. Commit and push the branch for review.
+#. Commit and push the branch to ``upstream`` and open a PR.
 
-#. Once PR is **green** and **approved**, create and push a tag::
+#. Once the PR is **green** and **approved**, start the ``deploy`` workflow manually from the branch ``release-VERSION``, passing ``VERSION`` as parameter.
 
-    $ export VERSION=X.Y.Z
-    $ git tag v$VERSION release-$VERSION
-    $ git push git@github.com:pytest-dev/pytest-subtests.git v$VERSION
-
-That will build the package and publish it on ``PyPI`` automatically.
+#. Merge the release PR to ``main``.

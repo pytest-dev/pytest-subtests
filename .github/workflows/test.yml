@@ -3,7 +3,12 @@ name: test
 on:
   push:
     branches:
+      - main
+      - "test-me-*"
+
   pull_request:
+    branches:
+      - "*"
 
 
 # Cancel running jobs for the same workflow and branch.
@@ -12,10 +17,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and Check Package
+        uses: hynek/build-and-inspect-python-package@v1.5
+
   test:
-
+    needs: [package]
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -79,6 +91,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Download Package
+      uses: actions/download-artifact@v3
+      with:
+        name: Packages
+        path: dist
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -90,12 +108,6 @@ jobs:
         python -m pip install --upgrade tox
 
     - name: Test
+      shell: bash
       run: |
-        tox -e ${{ matrix.tox_env }}
-
-  check-package:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build and Check Package
-      uses: hynek/build-and-inspect-python-package@v1.5
+        tox run -e ${{ matrix.tox_env }} --installpkg `find dist/*.tar.gz`
