@@ -365,6 +365,91 @@ class TestCapture:
         )
 
 
+class TestLogging:
+    def create_file(self, testdir):
+        testdir.makepyfile(
+            """
+            import logging
+
+            def test_foo(subtests):
+                logging.info("before")
+
+                with subtests.test("sub1"):
+                    print("sub1 stdout")
+                    logging.info("sub1 logging")
+
+                with subtests.test("sub2"):
+                    print("sub2 stdout")
+                    logging.info("sub2 logging")
+                    assert False
+            """
+        )
+
+    def test_capturing(self, testdir):
+        self.create_file(testdir)
+        result = testdir.runpytest("--log-level=INFO")
+        result.stdout.fnmatch_lines(
+            [
+                "*___ test_foo [[]sub2[]] __*",
+                "*-- Captured stdout call --*",
+                "sub2 stdout",
+                "*-- Captured log call ---*",
+                "INFO     root:test_capturing.py:12 sub2 logging",
+                "*== short test summary info ==*"
+            ]
+        )
+
+    def test_caplog(self, testdir):
+        testdir.makepyfile(
+            """
+            import logging
+
+            def test(subtests, caplog):
+                caplog.set_level(logging.INFO)
+                logging.info("start test")
+
+                with subtests.test("sub1"):
+                    logging.info("inside %s", "subtest1")
+                
+                assert len(caplog.records) == 2
+                assert caplog.records[0].getMessage() == "start test"
+                assert caplog.records[1].getMessage() == "inside subtest1"
+            """
+        )
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines(
+            [
+                "*1 passed*",
+            ]
+        )
+
+    def test_no_logging(self, testdir):
+        testdir.makepyfile(
+            """
+            import logging
+
+            def test(subtests):
+                logging.info("start log line")
+
+                with subtests.test("sub passing"):
+                    logging.info("inside %s", "passing log line")
+                
+                with subtests.test("sub failing"):
+                    logging.info("inside %s", "failing log line")
+                    assert False
+
+                logging.info("end log line")
+            """
+        )
+        result = testdir.runpytest("-p no:logging")
+        result.stdout.fnmatch_lines(
+            [
+                "*1 passed*",
+            ]
+        )
+        result.stdout.no_fnmatch_line("*root:test_no_logging.py*log line*")
+
+
 class TestDebugging:
     """Check --pdb support for subtests fixture and TestCase.subTest."""
 

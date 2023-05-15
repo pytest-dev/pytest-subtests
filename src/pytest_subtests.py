@@ -8,6 +8,7 @@ from _pytest._code import ExceptionInfo
 from _pytest.capture import CaptureFixture
 from _pytest.capture import FDCapture
 from _pytest.capture import SysCapture
+from _pytest.logging import LogCaptureHandler, catching_logs
 from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
@@ -176,6 +177,19 @@ class SubTests:
                 fixture.close()
                 captured.out = out
                 captured.err = err
+    
+    @contextmanager
+    def _capturing_logs(self):
+        logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
+        if logging_plugin is None:
+            yield NullCapturedLogs()
+        else:
+            handler = LogCaptureHandler()
+            handler.setFormatter(logging_plugin.formatter)
+            
+            captured_logs = CapturedLogs(handler)
+            with catching_logs(handler):
+                yield captured_logs
 
     @contextmanager
     def test(self, msg=None, **kwargs):
@@ -183,7 +197,7 @@ class SubTests:
         precise_start = time.perf_counter()
         exc_info = None
 
-        with self._capturing_output() as captured:
+        with self._capturing_output() as captured_output, self._capturing_logs() as captured_logs:
             try:
                 yield
             except (Exception, OutcomeException):
@@ -200,8 +214,9 @@ class SubTests:
         sub_report = SubTestReport._from_test_report(report)
         sub_report.context = SubTestContext(msg, kwargs.copy())
 
-        captured.update_report(sub_report)
-
+        captured_output.update_report(sub_report)
+        captured_logs.update_report(sub_report)
+    
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
 
@@ -247,6 +262,19 @@ class Captured:
         if self.err:
             report.sections.append(("Captured stderr call", self.err))
 
+
+class CapturedLogs:
+    def __init__(self, handler):
+        self._handler = handler
+    
+    def update_report(self, report):
+        report.sections.append(("Captured log call", self._handler.stream.getvalue()))
+
+
+class NullCapturedLogs:   
+    def update_report(self, report):
+        pass
+        
 
 def pytest_report_to_serializable(report):
     if isinstance(report, SubTestReport):
