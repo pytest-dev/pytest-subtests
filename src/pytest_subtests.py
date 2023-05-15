@@ -8,7 +8,8 @@ from _pytest._code import ExceptionInfo
 from _pytest.capture import CaptureFixture
 from _pytest.capture import FDCapture
 from _pytest.capture import SysCapture
-from _pytest.logging import LogCaptureHandler, catching_logs
+from _pytest.logging import catching_logs
+from _pytest.logging import LogCaptureHandler
 from _pytest.outcomes import OutcomeException
 from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
@@ -177,7 +178,7 @@ class SubTests:
                 fixture.close()
                 captured.out = out
                 captured.err = err
-    
+
     @contextmanager
     def _capturing_logs(self):
         logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
@@ -186,7 +187,7 @@ class SubTests:
         else:
             handler = LogCaptureHandler()
             handler.setFormatter(logging_plugin.formatter)
-            
+
             captured_logs = CapturedLogs(handler)
             with catching_logs(handler):
                 yield captured_logs
@@ -216,7 +217,7 @@ class SubTests:
 
         captured_output.update_report(sub_report)
         captured_logs.update_report(sub_report)
-    
+
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
 
@@ -266,15 +267,15 @@ class Captured:
 class CapturedLogs:
     def __init__(self, handler):
         self._handler = handler
-    
+
     def update_report(self, report):
         report.sections.append(("Captured log call", self._handler.stream.getvalue()))
 
 
-class NullCapturedLogs:   
+class NullCapturedLogs:
     def update_report(self, report):
         pass
-        
+
 
 def pytest_report_to_serializable(report):
     if isinstance(report, SubTestReport):
