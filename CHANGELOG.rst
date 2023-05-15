@@ -4,6 +4,9 @@ CHANGELOG
 UNRELEASED
 ----------
 
+0.11.0 (2023-05-15)
+-------------------
+
 * Logging is displayed for failing subtests (`#92`_)
 * Passing subtests no longer turn the pytest output to yellow (as if warnings have been issued) (`#86`_). Thanks to `Andrew-Brock`_ for providing the solution.
 * Now the ``msg`` contents of a subtest is displayed when running pytest with ``-v`` (`#6`_).

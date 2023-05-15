@@ -395,7 +395,7 @@ class TestLogging:
                 "sub2 stdout",
                 "*-- Captured log call ---*",
                 "INFO     root:test_capturing.py:12 sub2 logging",
-                "*== short test summary info ==*"
+                "*== short test summary info ==*",
             ]
         )
 
@@ -410,7 +410,7 @@ class TestLogging:
 
                 with subtests.test("sub1"):
                     logging.info("inside %s", "subtest1")
-                
+
                 assert len(caplog.records) == 2
                 assert caplog.records[0].getMessage() == "start test"
                 assert caplog.records[1].getMessage() == "inside subtest1"
@@ -433,7 +433,7 @@ class TestLogging:
 
                 with subtests.test("sub passing"):
                     logging.info("inside %s", "passing log line")
-                
+
                 with subtests.test("sub failing"):
                     logging.info("inside %s", "failing log line")
                     assert False
