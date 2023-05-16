@@ -138,7 +138,6 @@ class TestSubTest:
 
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_simple_terminal_normal(self, simple_script, testdir, runner):
-
         suffix = ".test_foo" if IS_PY311 else ""
         if runner == "unittest":
             result = testdir.run(sys.executable, simple_script)
@@ -173,7 +172,6 @@ class TestSubTest:
 
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_simple_terminal_verbose(self, simple_script, testdir, runner):
-
         suffix = ".test_foo" if IS_PY311 else ""
         if runner == "unittest":
             result = testdir.run(sys.executable, simple_script, "-v")
