@@ -4,6 +4,11 @@ CHANGELOG
 UNRELEASED
 ----------
 
+* Python 3.12 is now officially supported (`#113`_).
+
+.. _#113: https://github.com/pytest-dev/pytest-subtests/pull/113
+
+
 0.11.0 (2023-05-15)
 -------------------
 

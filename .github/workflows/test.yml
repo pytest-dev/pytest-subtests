@@ -37,12 +37,14 @@ jobs:
           "windows-py39",
           "windows-py310",
           "windows-py311",
+          "windows-py312",
 
           "ubuntu-py37",
           "ubuntu-py38",
           "ubuntu-py39",
           "ubuntu-py310",
           "ubuntu-py311",
+          "ubuntu-py312",
         ]
 
         include:
@@ -63,9 +65,14 @@ jobs:
             os: windows-latest
             tox_env: "py310"
           - name: "windows-py311"
-            python: "3.11-dev"
+            python: "3.11"
             os: windows-latest
             tox_env: "py311"
+          - name: "windows-py312"
+            python: "3.12"
+            os: windows-latest
+            tox_env: "py312"
+
 
           - name: "ubuntu-py37"
             python: "3.7"
@@ -84,9 +91,13 @@ jobs:
             os: ubuntu-latest
             tox_env: "py310"
           - name: "ubuntu-py311"
-            python: "3.11-dev"
+            python: "3.11"
             os: ubuntu-latest
             tox_env: "py311"
+          - name: "ubuntu-py312"
+            python: "3.12"
+            os: ubuntu-latest
+            tox_env: "py312"
 
     steps:
     - uses: actions/checkout@v3
