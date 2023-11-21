@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import time
 from contextlib import contextmanager
 from contextlib import nullcontext
+from typing import Any
+from typing import Mapping
 
 import attr
 import pytest
@@ -17,7 +21,7 @@ from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup("subtests")
     group.addoption(
         "--no-subtests-shortletter",
@@ -35,15 +39,15 @@ class SubTestContext:
 
 
 @attr.s(init=False)
-class SubTestReport(TestReport):
+class SubTestReport(TestReport):  # type: ignore[misc]
     context = attr.ib()
 
     @property
-    def head_line(self):
+    def head_line(self) -> str:
         _, _, domain = self.location
         return f"{domain} {self.sub_test_description()}"
 
-    def sub_test_description(self):
+    def sub_test_description(self) -> str:
         parts = []
         if isinstance(self.context.msg, str):
             parts.append(f"[{self.context.msg}]")
@@ -54,7 +58,7 @@ class SubTestReport(TestReport):
             parts.append(f"({params_desc})")
         return " ".join(parts) or "(<subtest>)"
 
-    def _to_json(self):
+    def _to_json(self) -> dict:
         data = super()._to_json()
         del data["context"]
         data["_report_type"] = "SubTestReport"
@@ -95,9 +99,9 @@ def _addSubTest(self, test_case, test, exc_info):
             )
 
 
-def pytest_configure(config):
-    TestCaseFunction.addSubTest = _addSubTest
-    TestCaseFunction.failfast = False
+def pytest_configure(config: pytest.Config) -> None:
+    TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
+    TestCaseFunction.failfast = False  # type: ignore[attr-defined]
 
     # Hack (#86): the terminal does not know about the "subtests"
     # status, so it will by default turn the output to yellow.
@@ -110,7 +114,7 @@ def pytest_configure(config):
     # We need to check if we are not re-adding because we run our own tests
     # with pytester in-process mode, so this will be called multiple times.
     if new_types[0] not in _pytest.terminal.KNOWN_TYPES:
-        _pytest.terminal.KNOWN_TYPES = _pytest.terminal.KNOWN_TYPES + new_types
+        _pytest.terminal.KNOWN_TYPES = _pytest.terminal.KNOWN_TYPES + new_types  # type: ignore[assignment]
 
     _pytest.terminal._color_for_type.update(
         {
@@ -121,7 +125,7 @@ def pytest_configure(config):
     )
 
 
-def pytest_unconfigure():
+def pytest_unconfigure() -> None:
     if hasattr(TestCaseFunction, "addSubTest"):
         del TestCaseFunction.addSubTest
     if hasattr(TestCaseFunction, "failfast"):
@@ -193,7 +197,7 @@ class SubTests:
                 yield captured_logs
 
     @contextmanager
-    def test(self, msg=None, **kwargs):
+    def test(self, msg: str | None = None, **kwargs):
         start = time.time()
         precise_start = time.perf_counter()
         exc_info = None
@@ -257,7 +261,7 @@ class Captured:
     out = attr.ib(default="", type=str)
     err = attr.ib(default="", type=str)
 
-    def update_report(self, report):
+    def update_report(self, report: pytest.TestReport):
         if self.out:
             report.sections.append(("Captured stdout call", self.out))
         if self.err:
@@ -282,15 +286,19 @@ def pytest_report_to_serializable(report):
         return report._to_json()
 
 
-def pytest_report_from_serializable(data):
+def pytest_report_from_serializable(data: dict[str, Any]):
     if data.get("_report_type") == "SubTestReport":
         return SubTestReport._from_json(data)
+    return None
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_report_teststatus(report, config):
+def pytest_report_teststatus(
+    report: pytest.TestReport,
+    config: pytest.Config,
+) -> tuple[str, str, str | Mapping[str, bool]] | None:
     if report.when != "call" or not isinstance(report, SubTestReport):
-        return
+        return None
 
     if hasattr(report, "wasxfail"):
         return None
@@ -306,3 +314,5 @@ def pytest_report_teststatus(report, config):
     elif outcome == "failed":
         short = "" if config.option.no_subtests_shortletter else "u"
         return outcome, short, f"{description} SUBFAIL"
+
+    return None

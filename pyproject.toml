@@ -5,4 +5,8 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.mypy]
+warn_unused_configs = true
+warn_unused_ignores = true
+
 [tool.setuptools_scm]
