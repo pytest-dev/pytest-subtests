@@ -6,6 +6,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
+disallow_untyped_defs = true
+warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
 
