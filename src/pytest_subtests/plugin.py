@@ -82,7 +82,7 @@ class SubTestReport(TestReport):  # type: ignore[misc]
         return data
 
     @classmethod
-    def _from_json(cls, reportdict: dict) -> SubTestReport:
+    def _from_json(cls, reportdict: dict[str, Any]) -> SubTestReport:
         report = super()._from_json(reportdict)
         context_data = reportdict["_subtest.context"]
         report.context = SubTestContext(
