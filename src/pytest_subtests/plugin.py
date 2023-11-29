@@ -1,6 +1,16 @@
+from __future__ import annotations
+
+import sys
 import time
 from contextlib import contextmanager
 from contextlib import nullcontext
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Generator
+from typing import Mapping
+from typing import TYPE_CHECKING
+from unittest import TestCase
 
 import attr
 import pytest
@@ -8,6 +18,8 @@ from _pytest._code import ExceptionInfo
 from _pytest.capture import CaptureFixture
 from _pytest.capture import FDCapture
 from _pytest.capture import SysCapture
+from _pytest.config.compat import PathAwareHookProxy
+from _pytest.fixtures import SubRequest
 from _pytest.logging import catching_logs
 from _pytest.logging import LogCaptureHandler
 from _pytest.outcomes import OutcomeException
@@ -16,8 +28,16 @@ from _pytest.runner import CallInfo
 from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
 
+if TYPE_CHECKING:
+    from types import TracebackType
 
-def pytest_addoption(parser):
+    if sys.version_info < (3, 8):
+        from typing_extensions import Literal
+    else:
+        from typing import Literal
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup("subtests")
     group.addoption(
         "--no-subtests-shortletter",
@@ -30,20 +50,20 @@ def pytest_addoption(parser):
 
 @attr.s
 class SubTestContext:
-    msg = attr.ib()
-    kwargs = attr.ib()
+    msg: str | None = attr.ib()
+    kwargs: dict[str, Any] = attr.ib()
 
 
 @attr.s(init=False)
-class SubTestReport(TestReport):
-    context = attr.ib()
+class SubTestReport(TestReport):  # type: ignore[misc]
+    context: SubTestContext = attr.ib()
 
     @property
-    def head_line(self):
+    def head_line(self) -> str:
         _, _, domain = self.location
         return f"{domain} {self.sub_test_description()}"
 
-    def sub_test_description(self):
+    def sub_test_description(self) -> str:
         parts = []
         if isinstance(self.context.msg, str):
             parts.append(f"[{self.context.msg}]")
@@ -54,7 +74,7 @@ class SubTestReport(TestReport):
             parts.append(f"({params_desc})")
         return " ".join(parts) or "(<subtest>)"
 
-    def _to_json(self):
+    def _to_json(self) -> dict:
         data = super()._to_json()
         del data["context"]
         data["_report_type"] = "SubTestReport"
@@ -62,7 +82,7 @@ class SubTestReport(TestReport):
         return data
 
     @classmethod
-    def _from_json(cls, reportdict):
+    def _from_json(cls, reportdict: dict[str, Any]) -> SubTestReport:
         report = super()._from_json(reportdict)
         context_data = reportdict["_subtest.context"]
         report.context = SubTestContext(
@@ -71,13 +91,18 @@ class SubTestReport(TestReport):
         return report
 
     @classmethod
-    def _from_test_report(cls, test_report):
+    def _from_test_report(cls, test_report: TestReport) -> SubTestReport:
         return super()._from_json(test_report._to_json())
 
 
-def _addSubTest(self, test_case, test, exc_info):
+def _addSubTest(
+    self: TestCaseFunction,
+    test_case: Any,
+    test: TestCase,
+    exc_info: tuple[type[BaseException], BaseException, TracebackType] | None,
+) -> None:
     if exc_info is not None:
-        msg = test._message if isinstance(test._message, str) else None
+        msg = test._message if isinstance(test._message, str) else None  # type: ignore[attr-defined]
         call_info = make_call_info(
             ExceptionInfo(exc_info, _ispytest=True),
             start=0,
@@ -87,7 +112,7 @@ def _addSubTest(self, test_case, test, exc_info):
         )
         report = self.ihook.pytest_runtest_makereport(item=self, call=call_info)
         sub_report = SubTestReport._from_test_report(report)
-        sub_report.context = SubTestContext(msg, dict(test.params))
+        sub_report.context = SubTestContext(msg, dict(test.params))  # type: ignore[attr-defined]
         self.ihook.pytest_runtest_logreport(report=sub_report)
         if check_interactive_exception(call_info, sub_report):
             self.ihook.pytest_exception_interact(
@@ -95,9 +120,9 @@ def _addSubTest(self, test_case, test, exc_info):
             )
 
 
-def pytest_configure(config):
-    TestCaseFunction.addSubTest = _addSubTest
-    TestCaseFunction.failfast = False
+def pytest_configure(config: pytest.Config) -> None:
+    TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
+    TestCaseFunction.failfast = False  # type: ignore[attr-defined]
 
     # Hack (#86): the terminal does not know about the "subtests"
     # status, so it will by default turn the output to yellow.
@@ -110,7 +135,7 @@ def pytest_configure(config):
     # We need to check if we are not re-adding because we run our own tests
     # with pytester in-process mode, so this will be called multiple times.
     if new_types[0] not in _pytest.terminal.KNOWN_TYPES:
-        _pytest.terminal.KNOWN_TYPES = _pytest.terminal.KNOWN_TYPES + new_types
+        _pytest.terminal.KNOWN_TYPES = _pytest.terminal.KNOWN_TYPES + new_types  # type: ignore[assignment]
 
     _pytest.terminal._color_for_type.update(
         {
@@ -121,7 +146,7 @@ def pytest_configure(config):
     )
 
 
-def pytest_unconfigure():
+def pytest_unconfigure() -> None:
     if hasattr(TestCaseFunction, "addSubTest"):
         del TestCaseFunction.addSubTest
     if hasattr(TestCaseFunction, "failfast"):
@@ -129,7 +154,7 @@ def pytest_unconfigure():
 
 
 @pytest.fixture
-def subtests(request):
+def subtests(request: SubRequest) -> Generator[SubTests, None, None]:
     capmam = request.node.config.pluginmanager.get_plugin("capturemanager")
     if capmam is not None:
         suspend_capture_ctx = capmam.global_and_fixture_disabled
@@ -140,16 +165,16 @@ def subtests(request):
 
 @attr.s
 class SubTests:
-    ihook = attr.ib()
-    suspend_capture_ctx = attr.ib()
-    request = attr.ib()
+    ihook: PathAwareHookProxy = attr.ib()
+    suspend_capture_ctx: Callable[[], ContextManager] = attr.ib()
+    request: SubRequest = attr.ib()
 
     @property
-    def item(self):
+    def item(self) -> pytest.Item:
         return self.request.node
 
     @contextmanager
-    def _capturing_output(self):
+    def _capturing_output(self) -> Generator[Captured, None, None]:
         option = self.request.config.getoption("capture", None)
 
         # capsys or capfd are active, subtest should not capture
@@ -180,7 +205,7 @@ class SubTests:
                 captured.err = err
 
     @contextmanager
-    def _capturing_logs(self):
+    def _capturing_logs(self) -> Generator[CapturedLogs | NullCapturedLogs, None, None]:
         logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
         if logging_plugin is None:
             yield NullCapturedLogs()
@@ -193,7 +218,11 @@ class SubTests:
                 yield captured_logs
 
     @contextmanager
-    def test(self, msg=None, **kwargs):
+    def test(
+        self,
+        msg: str | None = None,
+        **kwargs: Any,
+    ) -> Generator[None, None, None]:
         start = time.time()
         precise_start = time.perf_counter()
         exc_info = None
@@ -227,7 +256,14 @@ class SubTests:
             )
 
 
-def make_call_info(exc_info, *, start, stop, duration, when):
+def make_call_info(
+    exc_info: ExceptionInfo[BaseException] | None,
+    *,
+    start: float,
+    stop: float,
+    duration: float,
+    when: Literal["collect", "setup", "call", "teardown"],
+) -> CallInfo:
     return CallInfo(
         None,
         exc_info,
@@ -240,7 +276,7 @@ def make_call_info(exc_info, *, start, stop, duration, when):
 
 
 @contextmanager
-def ignore_pytest_private_warning():
+def ignore_pytest_private_warning() -> Generator[None, None, None]:
     import warnings
 
     with warnings.catch_warnings():
@@ -257,7 +293,7 @@ class Captured:
     out = attr.ib(default="", type=str)
     err = attr.ib(default="", type=str)
 
-    def update_report(self, report):
+    def update_report(self, report: pytest.TestReport) -> None:
         if self.out:
             report.sections.append(("Captured stdout call", self.out))
         if self.err:
@@ -265,32 +301,37 @@ class Captured:
 
 
 class CapturedLogs:
-    def __init__(self, handler):
+    def __init__(self, handler: LogCaptureHandler) -> None:
         self._handler = handler
 
-    def update_report(self, report):
+    def update_report(self, report: pytest.TestReport) -> None:
         report.sections.append(("Captured log call", self._handler.stream.getvalue()))
 
 
 class NullCapturedLogs:
-    def update_report(self, report):
+    def update_report(self, report: pytest.TestReport) -> None:
         pass
 
 
-def pytest_report_to_serializable(report):
+def pytest_report_to_serializable(report: pytest.TestReport) -> dict[str, Any] | None:
     if isinstance(report, SubTestReport):
         return report._to_json()
+    return None
 
 
-def pytest_report_from_serializable(data):
+def pytest_report_from_serializable(data: dict[str, Any]) -> SubTestReport | None:
     if data.get("_report_type") == "SubTestReport":
         return SubTestReport._from_json(data)
+    return None
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_report_teststatus(report, config):
+def pytest_report_teststatus(
+    report: pytest.TestReport,
+    config: pytest.Config,
+) -> tuple[str, str, str | Mapping[str, bool]] | None:
     if report.when != "call" or not isinstance(report, SubTestReport):
-        return
+        return None
 
     if hasattr(report, "wasxfail"):
         return None
@@ -306,3 +347,5 @@ def pytest_report_teststatus(report, config):
     elif outcome == "failed":
         short = "" if config.option.no_subtests_shortletter else "u"
         return outcome, short, f"{description} SUBFAIL"
+
+    return None
