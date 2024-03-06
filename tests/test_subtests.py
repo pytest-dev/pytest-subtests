@@ -138,6 +138,28 @@ class TestFixture:
         expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
+    def test_typing_exported(
+        self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]
+    ) -> None:
+        pytester.makepyfile(
+            """
+            from pytest_subtests import SubTests
+
+            def test_typing_exported(subtests: SubTests) -> None:
+                assert isinstance(subtests, SubTests)
+            """
+        )
+        if mode == "normal":
+            result = pytester.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            assert mode == "xdist"
+            pytest.importorskip("xdist")
+            result = pytester.runpytest("-n1")
+            expected_lines = ["1 worker [1 item]"]
+        expected_lines += ["* 1 passed *"]
+        result.stdout.fnmatch_lines(expected_lines)
+
 
 class TestSubTest:
     """

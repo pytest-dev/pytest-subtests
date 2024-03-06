@@ -6,6 +6,7 @@ UNRELEASED
 
 * Python 3.12 is now officially supported (`#113`_).
 * Added typing support (`#115`_).
+* ``SubTests`` can be imported from ``pytest_subtests`` to type-annotate the ``subtests`` fixture.
 
 .. _#113: https://github.com/pytest-dev/pytest-subtests/pull/113
 .. _#115: https://github.com/pytest-dev/pytest-subtests/pull/115
