@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-UNRELEASED
-----------
+0.12.0 (2024-03-06)
+-------------------
 
 * Python 3.12 is now officially supported (`#113`_).
 * Added typing support (`#115`_).
