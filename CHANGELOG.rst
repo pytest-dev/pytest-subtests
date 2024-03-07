@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.12.1 (2024-03-07)
+-------------------
+
+* Fixed compatibility with upcoming pytest ``8.1.x``.  (`#125`_).
+
+.. _#125: https://github.com/pytest-dev/pytest-subtests/issues/125
+
 0.12.0 (2024-03-06)
 -------------------
 

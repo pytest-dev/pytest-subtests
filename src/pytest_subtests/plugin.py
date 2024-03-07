@@ -13,12 +13,12 @@ from typing import TYPE_CHECKING
 from unittest import TestCase
 
 import attr
+import pluggy
 import pytest
 from _pytest._code import ExceptionInfo
 from _pytest.capture import CaptureFixture
 from _pytest.capture import FDCapture
 from _pytest.capture import SysCapture
-from _pytest.config.compat import PathAwareHookProxy
 from _pytest.fixtures import SubRequest
 from _pytest.logging import catching_logs
 from _pytest.logging import LogCaptureHandler
@@ -27,6 +27,7 @@ from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
 from _pytest.runner import check_interactive_exception
 from _pytest.unittest import TestCaseFunction
+
 
 if TYPE_CHECKING:
     from types import TracebackType
@@ -165,7 +166,7 @@ def subtests(request: SubRequest) -> Generator[SubTests, None, None]:
 
 @attr.s
 class SubTests:
-    ihook: PathAwareHookProxy = attr.ib()
+    ihook: pluggy.HookRelay = attr.ib()
     suspend_capture_ctx: Callable[[], ContextManager] = attr.ib()
     request: SubRequest = attr.ib()
 
