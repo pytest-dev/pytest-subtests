@@ -224,6 +224,9 @@ class SubTests:
         msg: str | None = None,
         **kwargs: Any,
     ) -> Generator[None, None, None]:
+        # Hide from tracebacks.
+        __tracebackhide__ = True
+    
         start = time.time()
         precise_start = time.perf_counter()
         exc_info = None
