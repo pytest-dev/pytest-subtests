@@ -580,3 +580,29 @@ class TestDebugging:
         # assert.
         result.stdout.fnmatch_lines("*entering PDB*")
         assert self._FakePdb.calls == ["init", "reset", "interaction"]
+
+
+def test_exitfirst(pytester: pytest.Pytester) -> None:
+    """
+    Validate that when passing --exitfirst the test exits after the first failed subtest.
+    """
+    pytester.makepyfile(
+        """
+        def test_foo(subtests):
+            with subtests.test("sub1"):
+                assert False
+
+            with subtests.test("sub2"):
+                pass
+        """
+    )
+    result = pytester.runpytest("--exitfirst")
+    assert result.parseoutcomes()["failed"] == 1
+    result.stdout.fnmatch_lines(
+        [
+            "*[[]sub1[]] SUBFAIL test_exitfirst.py::test_foo - assert False*",
+            "* stopping after 1 failures*",
+        ],
+        consecutive=True,
+    )
+    result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed.
