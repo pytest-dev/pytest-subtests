@@ -599,7 +599,7 @@ class TestExitFirst:
         )
         result = pytester.runpytest("--exitfirst")
 
-        assert result.parseoutcomes()["failed"] == 2        
+        assert result.parseoutcomes()["failed"] == 2
         result.stdout.fnmatch_lines(
             [
                 "*[[]sub1[]] SUBFAIL test_exitfirst.py::testfoo - assert False*",  # sub1 failed, this seems desiable
@@ -607,7 +607,7 @@ class TestExitFirst:
             ]
         )
         result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed, this seems good
-        
+
         # This seems really wrong.  The reason the testfoo is considered a failure
         # is b/c of the exception raised during teardown of the subtests.test
 
@@ -618,5 +618,5 @@ class TestExitFirst:
                 "",
                 "/usr/lib/python3.10/contextlib.py:153: Failed",
             ],
-            consecutive=True
+            consecutive=True,
         )

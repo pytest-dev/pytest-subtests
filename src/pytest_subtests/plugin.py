@@ -260,7 +260,8 @@ class SubTests:
             )
 
         if self.request.session.shouldfail:
-            raise  self.request.session.Failed(self.request.session.shouldfail) from None
+            raise self.request.session.Failed(self.request.session.shouldfail) from None
+
 
 def make_call_info(
     exc_info: ExceptionInfo[BaseException] | None,
