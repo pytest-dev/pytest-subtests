@@ -580,3 +580,43 @@ class TestDebugging:
         # assert.
         result.stdout.fnmatch_lines("*entering PDB*")
         assert self._FakePdb.calls == ["init", "reset", "interaction"]
+
+
+class TestExitFirst:
+    def test_exitfirst(self, pytester: pytest.Pytester) -> None:
+        """
+        Validate that when passing --exitfirst the test exits after the first failed subtest
+        """
+        pytester.makepyfile(
+            """
+            def testfoo(subtests):
+                with subtests.test("sub1"):
+                    assert False
+
+                with subtests.test("sub2"):
+                    pass
+            """
+        )
+        result = pytester.runpytest("--exitfirst")
+
+        assert result.parseoutcomes()["failed"] == 2        
+        result.stdout.fnmatch_lines(
+            [
+                "*[[]sub1[]] SUBFAIL test_exitfirst.py::testfoo - assert False*",  # sub1 failed, this seems desiable
+                "*FAILED test_exitfirst.py::testfoo*",  # testfoo failed, this may or may not be desirable
+            ]
+        )
+        result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed, this seems good
+        
+        # This seems really wrong.  The reason the testfoo is considered a failure
+        # is b/c of the exception raised during teardown of the subtests.test
+
+        result.stdout.fnmatch_lines(
+            [
+                ">               self.gen.throw(typ, value, traceback)",
+                "E               _pytest.main.Failed: stopping after 1 failures",
+                "",
+                "/usr/lib/python3.10/contextlib.py:153: Failed",
+            ],
+            consecutive=True
+        )
