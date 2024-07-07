@@ -1,10 +1,11 @@
 CHANGELOG
 =========
 
-UNRELEASED
-----------
+0.13.0 (2024-07-07)
+-------------------
 
-* Support ``-x/--exitfirst`` (`#134`_).
+* Dropped support for EOL Python 3.7.
+* Added support for ``-x/--exitfirst`` (`#134`_).
 * Hide the traceback inside the ``SubTests.test()`` method (`#131`_).
 
 .. _#131: https://github.com/pytest-dev/pytest-subtests/pull/131
