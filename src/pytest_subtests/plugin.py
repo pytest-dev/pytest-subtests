@@ -9,6 +9,7 @@ from typing import Any
 from typing import Callable
 from typing import ContextManager
 from typing import Generator
+from typing import Iterator
 from typing import Mapping
 from typing import TYPE_CHECKING
 from unittest import TestCase
@@ -175,50 +176,6 @@ class SubTests:
     def item(self) -> pytest.Item:
         return self.request.node
 
-    @contextmanager
-    def _capturing_output(self) -> Generator[Captured, None, None]:
-        option = self.request.config.getoption("capture", None)
-
-        # capsys or capfd are active, subtest should not capture
-
-        capman = self.request.config.pluginmanager.getplugin("capturemanager")
-        capture_fixture_active = getattr(capman, "_capture_fixture", None)
-
-        if option == "sys" and not capture_fixture_active:
-            with ignore_pytest_private_warning():
-                fixture = CaptureFixture(SysCapture, self.request)
-        elif option == "fd" and not capture_fixture_active:
-            with ignore_pytest_private_warning():
-                fixture = CaptureFixture(FDCapture, self.request)
-        else:
-            fixture = None
-
-        if fixture is not None:
-            fixture._start()
-
-        captured = Captured()
-        try:
-            yield captured
-        finally:
-            if fixture is not None:
-                out, err = fixture.readouterr()
-                fixture.close()
-                captured.out = out
-                captured.err = err
-
-    @contextmanager
-    def _capturing_logs(self) -> Generator[CapturedLogs | NullCapturedLogs, None, None]:
-        logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
-        if logging_plugin is None:
-            yield NullCapturedLogs()
-        else:
-            handler = LogCaptureHandler()
-            handler.setFormatter(logging_plugin.formatter)
-
-            captured_logs = CapturedLogs(handler)
-            with catching_logs(handler):
-                yield captured_logs
-
     def test(
         self,
         msg: str | None = None,
@@ -239,8 +196,6 @@ class SubTests:
             self.ihook,
             msg,
             kwargs,
-            capturing_output_ctx=self._capturing_output,
-            capturing_logs_ctx=self._capturing_logs,
             request=self.request,
             suspend_capture_ctx=self.suspend_capture_ctx,
         )
@@ -260,8 +215,6 @@ class _SubTestContextManager:
     ihook: pluggy.HookRelay
     msg: str | None
     kwargs: dict[str, Any]
-    capturing_output_ctx: Callable[[], ContextManager]
-    capturing_logs_ctx: Callable[[], ContextManager]
     suspend_capture_ctx: Callable[[], ContextManager]
     request: SubRequest
 
@@ -274,9 +227,11 @@ class _SubTestContextManager:
 
         self._exit_stack = ExitStack()
         self._captured_output = self._exit_stack.enter_context(
-            self.capturing_output_ctx()
+            capturing_output(self.request)
         )
-        self._captured_logs = self._exit_stack.enter_context(self.capturing_logs_ctx())
+        self._captured_logs = self._exit_stack.enter_context(
+            capturing_logs(self.request)
+        )
 
     def __exit__(
         self,
@@ -340,6 +295,53 @@ def make_call_info(
         when=when,
         _ispytest=True,
     )
+
+
+@contextmanager
+def capturing_output(request: SubRequest) -> Iterator[Captured]:
+    option = request.config.getoption("capture", None)
+
+    # capsys or capfd are active, subtest should not capture.
+    capman = request.config.pluginmanager.getplugin("capturemanager")
+    capture_fixture_active = getattr(capman, "_capture_fixture", None)
+
+    if option == "sys" and not capture_fixture_active:
+        with ignore_pytest_private_warning():
+            fixture = CaptureFixture(SysCapture, request)
+    elif option == "fd" and not capture_fixture_active:
+        with ignore_pytest_private_warning():
+            fixture = CaptureFixture(FDCapture, request)
+    else:
+        fixture = None
+
+    if fixture is not None:
+        fixture._start()
+
+    captured = Captured()
+    try:
+        yield captured
+    finally:
+        if fixture is not None:
+            out, err = fixture.readouterr()
+            fixture.close()
+            captured.out = out
+            captured.err = err
+
+
+@contextmanager
+def capturing_logs(
+    request: SubRequest,
+) -> Iterator[CapturedLogs | NullCapturedLogs]:
+    logging_plugin = request.config.pluginmanager.getplugin("logging-plugin")
+    if logging_plugin is None:
+        yield NullCapturedLogs()
+    else:
+        handler = LogCaptureHandler()
+        handler.setFormatter(logging_plugin.formatter)
+
+        captured_logs = CapturedLogs(handler)
+        with catching_logs(handler):
+            yield captured_logs
 
 
 @contextmanager
