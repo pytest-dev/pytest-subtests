@@ -32,14 +32,12 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          "windows-py37",
           "windows-py38",
           "windows-py39",
           "windows-py310",
           "windows-py311",
           "windows-py312",
 
-          "ubuntu-py37",
           "ubuntu-py38",
           "ubuntu-py39",
           "ubuntu-py310",
@@ -48,10 +46,6 @@ jobs:
         ]
 
         include:
-          - name: "windows-py37"
-            python: "3.7"
-            os: windows-latest
-            tox_env: "py37"
           - name: "windows-py38"
             python: "3.8"
             os: windows-latest
@@ -73,11 +67,6 @@ jobs:
             os: windows-latest
             tox_env: "py312"
 
-
-          - name: "ubuntu-py37"
-            python: "3.7"
-            os: ubuntu-latest
-            tox_env: "py37"
           - name: "ubuntu-py38"
             python: "3.8"
             os: ubuntu-latest

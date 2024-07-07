@@ -4,6 +4,7 @@ CHANGELOG
 UNRELEASED
 ----------
 
+* Dropped support for EOL Python 3.7.
 * Support ``-x/--exitfirst`` (`#134`_).
 * Hide the traceback inside the ``SubTests.test()`` method (`#131`_).
 
