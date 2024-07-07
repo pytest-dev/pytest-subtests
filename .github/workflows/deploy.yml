@@ -46,3 +46,4 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh release create v${{ github.event.inputs.version }} --target=${{ github.ref_name }} --generate-notes
+        gh merge --branch ${{ github.ref_name }}
