@@ -4,9 +4,11 @@ CHANGELOG
 UNRELEASED
 ----------
 
+* Support ``-x/--exitfirst`` (`#134`_).
 * Hide the traceback inside the ``SubTests.test()`` method (`#131`_).
 
 .. _#131: https://github.com/pytest-dev/pytest-subtests/pull/131
+.. _#134: https://github.com/pytest-dev/pytest-subtests/pull/134
 
 0.12.1 (2024-03-07)
 -------------------

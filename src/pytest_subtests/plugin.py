@@ -3,11 +3,13 @@ from __future__ import annotations
 import sys
 import time
 from contextlib import contextmanager
+from contextlib import ExitStack
 from contextlib import nullcontext
 from typing import Any
 from typing import Callable
 from typing import ContextManager
 from typing import Generator
+from typing import Iterator
 from typing import Mapping
 from typing import TYPE_CHECKING
 from unittest import TestCase
@@ -174,90 +176,106 @@ class SubTests:
     def item(self) -> pytest.Item:
         return self.request.node
 
-    @contextmanager
-    def _capturing_output(self) -> Generator[Captured, None, None]:
-        option = self.request.config.getoption("capture", None)
-
-        # capsys or capfd are active, subtest should not capture
-
-        capman = self.request.config.pluginmanager.getplugin("capturemanager")
-        capture_fixture_active = getattr(capman, "_capture_fixture", None)
-
-        if option == "sys" and not capture_fixture_active:
-            with ignore_pytest_private_warning():
-                fixture = CaptureFixture(SysCapture, self.request)
-        elif option == "fd" and not capture_fixture_active:
-            with ignore_pytest_private_warning():
-                fixture = CaptureFixture(FDCapture, self.request)
-        else:
-            fixture = None
-
-        if fixture is not None:
-            fixture._start()
-
-        captured = Captured()
-        try:
-            yield captured
-        finally:
-            if fixture is not None:
-                out, err = fixture.readouterr()
-                fixture.close()
-                captured.out = out
-                captured.err = err
-
-    @contextmanager
-    def _capturing_logs(self) -> Generator[CapturedLogs | NullCapturedLogs, None, None]:
-        logging_plugin = self.request.config.pluginmanager.getplugin("logging-plugin")
-        if logging_plugin is None:
-            yield NullCapturedLogs()
-        else:
-            handler = LogCaptureHandler()
-            handler.setFormatter(logging_plugin.formatter)
-
-            captured_logs = CapturedLogs(handler)
-            with catching_logs(handler):
-                yield captured_logs
-
-    @contextmanager
     def test(
         self,
         msg: str | None = None,
         **kwargs: Any,
-    ) -> Generator[None, None, None]:
-        # Hide from tracebacks.
+    ) -> _SubTestContextManager:
+        """
+        Context manager for subtests, capturing exceptions raised inside the subtest scope and handling
+        them through the pytest machinery.
+
+        Usage:
+
+        .. code-block:: python
+
+            with subtests.test(msg="subtest"):
+                assert 1 == 1
+        """
+        return _SubTestContextManager(
+            self.ihook,
+            msg,
+            kwargs,
+            request=self.request,
+            suspend_capture_ctx=self.suspend_capture_ctx,
+        )
+
+
+@attr.s(auto_attribs=True)
+class _SubTestContextManager:
+    """
+    Context manager for subtests, capturing exceptions raised inside the subtest scope and handling
+    them through the pytest machinery.
+
+    Note: initially this logic was implemented directly in SubTests.test() as a @contextmanager, however
+    it is not possible to control the output fully when exiting from it due to an exception when
+    in --exitfirst mode, so this was refactored into an explicit context manager class (#134).
+    """
+
+    ihook: pluggy.HookRelay
+    msg: str | None
+    kwargs: dict[str, Any]
+    suspend_capture_ctx: Callable[[], ContextManager]
+    request: SubRequest
+
+    def __enter__(self) -> None:
         __tracebackhide__ = True
 
-        start = time.time()
-        precise_start = time.perf_counter()
-        exc_info = None
+        self._start = time.time()
+        self._precise_start = time.perf_counter()
+        self._exc_info = None
 
-        with self._capturing_output() as captured_output, self._capturing_logs() as captured_logs:
-            try:
-                yield
-            except (Exception, OutcomeException):
-                exc_info = ExceptionInfo.from_current()
+        self._exit_stack = ExitStack()
+        self._captured_output = self._exit_stack.enter_context(
+            capturing_output(self.request)
+        )
+        self._captured_logs = self._exit_stack.enter_context(
+            capturing_logs(self.request)
+        )
+
+    def __exit__(
+        self,
+        exc_type: type[Exception] | None,
+        exc_val: Exception | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:
+        __tracebackhide__ = True
+        try:
+            if exc_val is not None:
+                if self.request.session.shouldfail:
+                    return False
+
+                exc_info = ExceptionInfo.from_exception(exc_val)
+            else:
+                exc_info = None
+        finally:
+            self._exit_stack.close()
 
         precise_stop = time.perf_counter()
-        duration = precise_stop - precise_start
+        duration = precise_stop - self._precise_start
         stop = time.time()
 
         call_info = make_call_info(
-            exc_info, start=start, stop=stop, duration=duration, when="call"
+            exc_info, start=self._start, stop=stop, duration=duration, when="call"
         )
-        report = self.ihook.pytest_runtest_makereport(item=self.item, call=call_info)
+        report = self.ihook.pytest_runtest_makereport(
+            item=self.request.node, call=call_info
+        )
         sub_report = SubTestReport._from_test_report(report)
-        sub_report.context = SubTestContext(msg, kwargs.copy())
+        sub_report.context = SubTestContext(self.msg, self.kwargs.copy())
 
-        captured_output.update_report(sub_report)
-        captured_logs.update_report(sub_report)
+        self._captured_output.update_report(sub_report)
+        self._captured_logs.update_report(sub_report)
 
         with self.suspend_capture_ctx():
             self.ihook.pytest_runtest_logreport(report=sub_report)
 
         if check_interactive_exception(call_info, sub_report):
             self.ihook.pytest_exception_interact(
-                node=self.item, call=call_info, report=sub_report
+                node=self.request.node, call=call_info, report=sub_report
             )
+
+        return True
 
 
 def make_call_info(
@@ -277,6 +295,53 @@ def make_call_info(
         when=when,
         _ispytest=True,
     )
+
+
+@contextmanager
+def capturing_output(request: SubRequest) -> Iterator[Captured]:
+    option = request.config.getoption("capture", None)
+
+    # capsys or capfd are active, subtest should not capture.
+    capman = request.config.pluginmanager.getplugin("capturemanager")
+    capture_fixture_active = getattr(capman, "_capture_fixture", None)
+
+    if option == "sys" and not capture_fixture_active:
+        with ignore_pytest_private_warning():
+            fixture = CaptureFixture(SysCapture, request)
+    elif option == "fd" and not capture_fixture_active:
+        with ignore_pytest_private_warning():
+            fixture = CaptureFixture(FDCapture, request)
+    else:
+        fixture = None
+
+    if fixture is not None:
+        fixture._start()
+
+    captured = Captured()
+    try:
+        yield captured
+    finally:
+        if fixture is not None:
+            out, err = fixture.readouterr()
+            fixture.close()
+            captured.out = out
+            captured.err = err
+
+
+@contextmanager
+def capturing_logs(
+    request: SubRequest,
+) -> Iterator[CapturedLogs | NullCapturedLogs]:
+    logging_plugin = request.config.pluginmanager.getplugin("logging-plugin")
+    if logging_plugin is None:
+        yield NullCapturedLogs()
+    else:
+        handler = LogCaptureHandler()
+        handler.setFormatter(logging_plugin.formatter)
+
+        captured_logs = CapturedLogs(handler)
+        with catching_logs(handler):
+            yield captured_logs
 
 
 @contextmanager
