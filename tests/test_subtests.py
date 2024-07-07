@@ -593,7 +593,7 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
                 assert False
 
             with subtests.test("sub2"):
-                pass
+                assert False
         """
     )
     result = pytester.runpytest("--exitfirst")
