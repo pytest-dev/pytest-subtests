@@ -242,9 +242,6 @@ class _SubTestContextManager:
         __tracebackhide__ = True
         try:
             if exc_val is not None:
-                if self.request.session.shouldfail:
-                    return False
-
                 exc_info = ExceptionInfo.from_exception(exc_val)
             else:
                 exc_info = None
@@ -275,6 +272,10 @@ class _SubTestContextManager:
                 node=self.request.node, call=call_info, report=sub_report
             )
 
+        if exc_val is not None:
+            if self.request.session.shouldfail:
+                # return False
+                pytest.exit(reason=f"subtest failed")
         return True
 
 

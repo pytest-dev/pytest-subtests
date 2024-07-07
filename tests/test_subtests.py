@@ -593,11 +593,13 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
                 assert False
 
             with subtests.test("sub2"):
-                assert False
+                assert True
+
+            assert False, "This would fail the parent, but shouldn't be reached"
         """
     )
     result = pytester.runpytest("--exitfirst")
-    assert result.parseoutcomes()["failed"] == 1
+    assert result.parseoutcomes()["failed"] == 1  # sub1 failed
     result.stdout.fnmatch_lines(
         [
             "*[[]sub1[]] SUBFAIL test_exitfirst.py::test_foo - assert False*",
@@ -606,3 +608,4 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
         consecutive=True,
     )
     result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed.
+    result.stdout.no_fnmatch_line("*This would fail the parent*")  # parent test neither passed nor failed
