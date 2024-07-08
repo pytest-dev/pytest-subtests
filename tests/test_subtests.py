@@ -608,4 +608,6 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
         consecutive=True,
     )
     result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed.
-    result.stdout.no_fnmatch_line("*This would fail the parent*")  # parent test neither passed nor failed
+    result.stdout.no_fnmatch_line(
+        "*This would fail the parent*"
+    )  # parent test neither passed nor failed
