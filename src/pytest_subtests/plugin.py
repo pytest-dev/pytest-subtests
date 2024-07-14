@@ -274,8 +274,7 @@ class _SubTestContextManager:
 
         if exc_val is not None:
             if self.request.session.shouldfail:
-                # return False
-                pytest.exit(reason=f"subtest failed")
+                return False
         return True
 
 
