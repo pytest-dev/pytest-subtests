@@ -597,7 +597,7 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
         """
     )
     result = pytester.runpytest("--exitfirst")
-    assert result.parseoutcomes()["failed"] == 2  # sub1 failed
+    assert result.parseoutcomes()["failed"] == 2
     result.stdout.fnmatch_lines(
         [
             "*[[]sub1[]] SUBFAIL test_exitfirst.py::test_foo - assert False*",
