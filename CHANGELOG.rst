@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-UNRELEASED
-----------
+0.13.1 (2024-07-16)
+-------------------
 
 * Fixed bug were an extra test would execute when ``-x/--exitfirst`` was used (`#139`_).
 
