@@ -593,15 +593,16 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
                 assert False
 
             with subtests.test("sub2"):
-                pass
+                assert False
         """
     )
     result = pytester.runpytest("--exitfirst")
-    assert result.parseoutcomes()["failed"] == 1
+    assert result.parseoutcomes()["failed"] == 2
     result.stdout.fnmatch_lines(
         [
             "*[[]sub1[]] SUBFAIL test_exitfirst.py::test_foo - assert False*",
-            "* stopping after 1 failures*",
+            "FAILED test_exitfirst.py::test_foo - assert False",
+            "* stopping after 2 failures*",
         ],
         consecutive=True,
     )
