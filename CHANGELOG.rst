@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+UNRELEASED
+----------
+
+* Fixed bug were an extra test would execute when ``-x/--exitfirst`` was used (`#139`_).
+
+.. _#139: https://github.com/pytest-dev/pytest-subtests/pull/139
+
 0.13.0 (2024-07-07)
 -------------------
 
