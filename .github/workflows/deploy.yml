@@ -41,7 +41,7 @@ jobs:
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@v1.10.1
       with:
-        attestations: true  
+        attestations: true
 
     - name: GitHub Release
       env:
