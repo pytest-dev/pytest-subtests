@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+UNRELEASED
+----------
+
+* Fix `pytest` requirement to `>=7.3` (`#159`_).
+
+.. _#159: https://github.com/pytest-dev/pytest-subtests/issues/159
+
 0.13.1 (2024-07-16)
 -------------------
 
