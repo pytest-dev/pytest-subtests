@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import sys
 import time
 from contextlib import contextmanager
@@ -13,6 +14,7 @@ from typing import Iterator
 from typing import Mapping
 from typing import TYPE_CHECKING
 from unittest import TestCase
+from unittest.case import _SubTest
 
 import attr
 import pluggy
@@ -98,6 +100,13 @@ class SubTestReport(TestReport):  # type: ignore[misc]
         return super()._from_json(test_report._to_json())
 
 
+def _addSkip(self, testcase: "unittest.TestCase", reason: str) -> None:
+    self._originaladdSkip(testcase, reason)
+    exc_info = self._excinfo[-1]
+    if isinstance(testcase, _SubTest):
+        self.addSubTest(testcase.test_case, testcase, exc_info)
+
+
 def _addSubTest(
     self: TestCaseFunction,
     test_case: Any,
@@ -126,6 +135,8 @@ def _addSubTest(
 def pytest_configure(config: pytest.Config) -> None:
     TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
     TestCaseFunction.failfast = False  # type: ignore[attr-defined]
+    TestCaseFunction._originaladdSkip = copy.copy(TestCaseFunction.addSkip)  # type: ignore[attr-defined]
+    TestCaseFunction.addSkip = _addSkip  # type: ignore[attr-defined]
 
     # Hack (#86): the terminal does not know about the "subtests"
     # status, so it will by default turn the output to yellow.
@@ -154,6 +165,9 @@ def pytest_unconfigure() -> None:
         del TestCaseFunction.addSubTest
     if hasattr(TestCaseFunction, "failfast"):
         del TestCaseFunction.failfast
+    if hasattr(TestCaseFunction, "_originaladdSkip"):
+        TestCaseFunction.addSkip = copy.copy(TestCaseFunction._originaladdSkip)
+        del TestCaseFunction._originaladdSkip
 
 
 @pytest.fixture
