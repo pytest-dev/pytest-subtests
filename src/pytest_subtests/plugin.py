@@ -100,7 +100,7 @@ class SubTestReport(TestReport):  # type: ignore[misc]
         return super()._from_json(test_report._to_json())
 
 
-def _addSkip(self, testcase: TestCase, reason: str) -> None:
+def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
     if isinstance(testcase, _SubTest):
         self._originaladdSkip(testcase, reason)
         exc_info = self._excinfo[-1]
