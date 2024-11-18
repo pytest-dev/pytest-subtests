@@ -150,7 +150,7 @@ def pytest_configure(config: pytest.Config) -> None:
     TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
     TestCaseFunction.failfast = False  # type: ignore[attr-defined]
     TestCaseFunction._originaladdSkip = copy.copy(TestCaseFunction.addSkip)  # type: ignore[attr-defined]
-    TestCaseFunction.addSkip = _addSkip  # type: ignore[attr-defined]
+    TestCaseFunction.addSkip = _addSkip  # type: ignore[method-assign]
 
     # Hack (#86): the terminal does not know about the "subtests"
     # status, so it will by default turn the output to yellow.
@@ -180,7 +180,7 @@ def pytest_unconfigure() -> None:
     if hasattr(TestCaseFunction, "failfast"):
         del TestCaseFunction.failfast
     if hasattr(TestCaseFunction, "_originaladdSkip"):
-        TestCaseFunction.addSkip = copy.copy(TestCaseFunction._originaladdSkip)
+        TestCaseFunction.addSkip = copy.copy(TestCaseFunction._originaladdSkip)  # type: ignore[method-assign]
         del TestCaseFunction._originaladdSkip
 
 
