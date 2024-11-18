@@ -101,10 +101,15 @@ class SubTestReport(TestReport):  # type: ignore[misc]
 
 
 def _addSkip(self, testcase: "unittest.TestCase", reason: str) -> None:
-    self._originaladdSkip(testcase, reason)
-    exc_info = self._excinfo[-1]
     if isinstance(testcase, _SubTest):
+        self._originaladdSkip(testcase, reason)
+        exc_info = self._excinfo[-1]
         self.addSubTest(testcase.test_case, testcase, exc_info)
+    else:
+        # The non-subtest skips have to be added by `_originaladdSkip` only after all subtest failures are processed by
+        # `_addSubTest`.
+        if len([x for x, y in self.instance._outcome.errors if isinstance(x, _SubTest)]) == 0:
+            self._originaladdSkip(testcase, reason)
 
 
 def _addSubTest(
@@ -130,6 +135,15 @@ def _addSubTest(
             self.ihook.pytest_exception_interact(
                 node=self, call=call_info, report=sub_report
             )
+
+        # Add non-subtest skips once all subtest failures are processed by # `_addSubTest`.
+        non_subtest_skip = [(x, y) for x, y in self.instance._outcome.skipped if not isinstance(x, _SubTest)]
+        subtest_errors = [(x, y) for x, y in self.instance._outcome.errors if isinstance(x, _SubTest)]
+        if len(subtest_errors) > 0 and len(non_subtest_skip) > 0:
+            last_subset_error = subtest_errors[-1]
+            if exc_info is last_subset_error[-1]:
+                for (testcase, reason) in non_subtest_skip:
+                    self._originaladdSkip(testcase, reason)
 
 
 def pytest_configure(config: pytest.Config) -> None:
