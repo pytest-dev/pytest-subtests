@@ -111,7 +111,7 @@ def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
         # `_addSubTest`.
         if (
             len(
-                [x for x, y in self.instance._outcome.errors if isinstance(x, _SubTest)]
+                [x for x, y in self.instance._outcome.errors if isinstance(x, _SubTest) and y is not None]
             )
             == 0
         ):
@@ -149,7 +149,7 @@ def _addSubTest(
             if not isinstance(x, _SubTest)
         ]
         subtest_errors = [
-            (x, y) for x, y in self.instance._outcome.errors if isinstance(x, _SubTest)
+            (x, y) for x, y in self.instance._outcome.errors if isinstance(x, _SubTest) and y is not None
         ]
         if len(subtest_errors) > 0 and len(non_subtest_skip) > 0:
             last_subset_error = subtest_errors[-1]
