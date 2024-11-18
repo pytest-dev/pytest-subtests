@@ -102,9 +102,9 @@ class SubTestReport(TestReport):  # type: ignore[misc]
 
 def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
     if isinstance(testcase, _SubTest):
-        self._originaladdSkip(testcase, reason)
+        self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
         exc_info = self._excinfo[-1]
-        self.addSubTest(testcase.test_case, testcase, exc_info)
+        self.addSubTest(testcase.test_case, testcase, exc_info)  # type: ignore[attr-defined]
     else:
         # The non-subtest skips have to be added by `_originaladdSkip` only after all subtest failures are processed by
         # `_addSubTest`.
@@ -114,7 +114,7 @@ def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
             )
             == 0
         ):
-            self._originaladdSkip(testcase, reason)
+            self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
 
 
 def _addSubTest(
