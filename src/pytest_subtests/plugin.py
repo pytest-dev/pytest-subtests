@@ -14,7 +14,7 @@ from typing import Iterator
 from typing import Mapping
 from typing import TYPE_CHECKING
 from unittest import TestCase
-from unittest.case import _SubTest
+from unittest.case import _SubTest  # type: ignore[attr-defined]
 
 import attr
 import pluggy
