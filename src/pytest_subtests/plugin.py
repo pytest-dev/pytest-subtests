@@ -152,10 +152,13 @@ def _addSubTest(
             for x, y in self.instance._outcome.errors
             if isinstance(x, _SubTest) and y is not None
         ]
-        # breakpoint()
-        if len(subtest_errors) > 0 and len(non_subtest_skip) > 0:
+        # Check if we have non-subtest skips: if there are also sub failures, non-subtest skips are not treated in
+        # `_addSubTest` and have to be added using `_originaladdSkip` after all subtest failures are processed.
+        if len(non_subtest_skip) > 0 and len(subtest_errors) > 0:
+            # Make sure we have processed the last subtest failure
             last_subset_error = subtest_errors[-1]
             if exc_info is last_subset_error[-1]:
+                # Add non-subtest skips (as they could not be treated in `_addSkip`)
                 for testcase, reason in non_subtest_skip:
                     self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
 
