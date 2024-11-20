@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import sys
 import time
 from contextlib import contextmanager
@@ -157,6 +156,7 @@ def _addSubTest(
             for x, y in self.instance._outcome.errors
             if isinstance(x, _SubTest) and y is not None
         ]
+        # breakpoint()
         if len(subtest_errors) > 0 and len(non_subtest_skip) > 0:
             last_subset_error = subtest_errors[-1]
             if exc_info is last_subset_error[-1]:
@@ -167,7 +167,7 @@ def _addSubTest(
 def pytest_configure(config: pytest.Config) -> None:
     TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
     TestCaseFunction.failfast = False  # type: ignore[attr-defined]
-    TestCaseFunction._originaladdSkip = copy.copy(TestCaseFunction.addSkip)  # type: ignore[attr-defined]
+    TestCaseFunction._originaladdSkip = TestCaseFunction.addSkip  # type: ignore[attr-defined]
     TestCaseFunction.addSkip = _addSkip  # type: ignore[method-assign]
 
     # Hack (#86): the terminal does not know about the "subtests"
@@ -198,7 +198,7 @@ def pytest_unconfigure() -> None:
     if hasattr(TestCaseFunction, "failfast"):
         del TestCaseFunction.failfast
     if hasattr(TestCaseFunction, "_originaladdSkip"):
-        TestCaseFunction.addSkip = copy.copy(TestCaseFunction._originaladdSkip)  # type: ignore[method-assign]
+        TestCaseFunction.addSkip = TestCaseFunction._originaladdSkip  # type: ignore[method-assign]
         del TestCaseFunction._originaladdSkip
 
 
