@@ -171,9 +171,9 @@ def pytest_configure(config: pytest.Config) -> None:
     TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
     TestCaseFunction.failfast = False  # type: ignore[attr-defined]
     # This condition is to prevent `TestCaseFunction._originaladdSkip` being assigned again in a subprocess from a
-    # parent python process where `addSkip` is already `_addSkip`. Without this guard condition, `_originaladdSkip` is
-    # assigned to `_addSkip` and cause an infinite recursion. A such case is when running tests in `test_subtests.py`
-    # where `pytester.runpytest` is used.
+    # parent python process where `addSkip` is already `_addSkip`. A such case is when running tests in
+    # `test_subtests.py` where `pytester.runpytest` is used. Without this guard condition, `_originaladdSkip` is
+    # assigned to `_addSkip` which is wrong as well as causing an infinite recursion in some cases.
     if not hasattr(TestCaseFunction, "_originaladdSkip"):
         TestCaseFunction._originaladdSkip = TestCaseFunction.addSkip  # type: ignore[attr-defined]
     TestCaseFunction.addSkip = _addSkip  # type: ignore[method-assign]
