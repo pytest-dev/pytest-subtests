@@ -453,13 +453,30 @@ class TestSubTest:
                 )
         elif runner == "pytest-normal":
             result = pytester.runpytest(p, "-v", "-rsf")
+            # The `(i=0)` is not correct but it's given by pytest `TerminalReporter` without `--no-fold-skipped`
             result.stdout.re_match_lines(
                 [
                     r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
                     r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\)",
-                    ".* 6 failed, 5 skipped in .*",
+                    r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip subtest i=3",
+                    r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip the test",
+                    r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo - AssertionError: assert 4 < 4",
+                    r".* 6 failed, 5 skipped in .*",
                 ]
             )
+            # check with `--no-fold-skipped` (which gives the correct information)
+            if sys.version_info >= (3, 10):
+                result = pytester.runpytest(p, "-v", "--no-fold-skipped", "-rsf")
+                result.stdout.re_match_lines(
+                    [
+                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
+                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\)",
+                        r"\[custom message\] \(i=3\) SUBSKIP test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip subtest i=3",
+                        r"SKIPPED test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip the test",
+                        r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo - AssertionError: assert 4 < 4",
+                        r".* 6 failed, 5 skipped in .*",
+                    ]
+                )
         else:
             pytest.xfail("Not producing the expected results (#5)")
             result = pytester.runpytest(p)  # type:ignore[unreachable]
