@@ -340,7 +340,6 @@ class TestSubTest:
                 ["collected 1 item", "* 3 xfailed, 1 passed in *"]
             )
 
-
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_skip_with_failure(
         self,
@@ -355,7 +354,7 @@ class TestSubTest:
             class T(TestCase):
                 def test_foo(self):
                     for i in range(10):
-                        with self.subTest("custom message", i=i):    
+                        with self.subTest("custom message", i=i):
                             if i < 4:
                                 self.skipTest(f"skip subtest i={i}")
                             assert i < 4
