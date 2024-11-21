@@ -420,7 +420,7 @@ class TestSubTest:
             class T(TestCase):
                 def test_foo(self):
                     for i in range(10):
-                        with self.subTest("custom message", i=i):    
+                        with self.subTest("custom message", i=i):
                             if i < 4:
                                 self.skipTest(f"skip subtest i={i}")
                             assert i < 4
