@@ -366,7 +366,6 @@ class TestSubTest:
         )
         if runner == "unittest":
             result = pytester.runpython(p)
-            breakpoint()
             result.stderr.re_match_lines(
                 [
                     "FAIL: test_foo \(__main__\.T\) \[custom message\] \(i=4\).*",
