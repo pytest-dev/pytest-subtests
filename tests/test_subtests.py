@@ -410,8 +410,10 @@ class TestSubTest:
     def test_skip_with_failure_and_non_subskip(
         self,
         pytester: pytest.Pytester,
+            monkeypatch: pytest.MonkeyPatch,
         runner: Literal["unittest", "pytest-normal", "pytest-xdist"],
     ) -> None:
+        monkeypatch.setenv("COLUMNS", "80")
         p = pytester.makepyfile(
             """
             import pytest
@@ -456,10 +458,10 @@ class TestSubTest:
             result.stdout.re_match_lines(
                 [
                     r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
-                    r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\)",
+                    r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip...\)",
                     r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip subtest i=3",
                     r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip the test",
-                    r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo - AssertionError: assert 4 < 4",
+                    r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo",
                     r".* 6 failed, 5 skipped in .*",
                 ]
             )
@@ -469,10 +471,10 @@ class TestSubTest:
                 result.stdout.re_match_lines(
                     [
                         r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
-                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\)",
+                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip...\).*",
                         r"\[custom message\] \(i=3\) SUBSKIP test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip subtest i=3",
                         r"SKIPPED test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip the test",
-                        r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo - AssertionError: assert 4 < 4",
+                        r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo",
                         r".* 6 failed, 5 skipped in .*",
                     ]
                 )
