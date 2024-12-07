@@ -4,9 +4,12 @@ CHANGELOG
 UNRELEASED
 ----------
 
-* Fix `pytest` requirement to `>=7.3` (`#159`_).
+* Fix output when using ``TestCase.skipTest`` (`#169`_).
+
+* Fix ``pytest`` requirement to ``>=7.3`` (`#159`_).
 
 .. _#159: https://github.com/pytest-dev/pytest-subtests/issues/159
+.. _#169: https://github.com/pytest-dev/pytest-subtests/pull/169
 
 0.13.1 (2024-07-16)
 -------------------

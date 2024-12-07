@@ -98,6 +98,29 @@ class SubTestReport(TestReport):  # type: ignore[misc]
         return super()._from_json(test_report._to_json())
 
 
+def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
+    from unittest.case import _SubTest  # type: ignore[attr-defined]
+
+    if isinstance(testcase, _SubTest):
+        self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
+        if self._excinfo is not None:
+            exc_info = self._excinfo[-1]
+            self.addSubTest(testcase.test_case, testcase, exc_info)  # type: ignore[attr-defined]
+    else:
+        # For python < 3.11: the non-subtest skips have to be added by `_originaladdSkip` only after all subtest
+        # failures are processed by `_addSubTest`.
+        if sys.version_info < (3, 11):
+            subtest_errors = [
+                x
+                for x, y in self.instance._outcome.errors
+                if isinstance(x, _SubTest) and y is not None
+            ]
+            if len(subtest_errors) == 0:
+                self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
+        else:
+            self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
+
+
 def _addSubTest(
     self: TestCaseFunction,
     test_case: Any,
@@ -122,10 +145,41 @@ def _addSubTest(
                 node=self, call=call_info, report=sub_report
             )
 
+        # For python < 3.11: add non-subtest skips once all subtest failures are processed by # `_addSubTest`.
+        if sys.version_info < (3, 11):
+            from unittest.case import _SubTest  # type: ignore[attr-defined]
+
+            non_subtest_skip = [
+                (x, y)
+                for x, y in self.instance._outcome.skipped
+                if not isinstance(x, _SubTest)
+            ]
+            subtest_errors = [
+                (x, y)
+                for x, y in self.instance._outcome.errors
+                if isinstance(x, _SubTest) and y is not None
+            ]
+            # Check if we have non-subtest skips: if there are also sub failures, non-subtest skips are not treated in
+            # `_addSubTest` and have to be added using `_originaladdSkip` after all subtest failures are processed.
+            if len(non_subtest_skip) > 0 and len(subtest_errors) > 0:
+                # Make sure we have processed the last subtest failure
+                last_subset_error = subtest_errors[-1]
+                if exc_info is last_subset_error[-1]:
+                    # Add non-subtest skips (as they could not be treated in `_addSkip`)
+                    for testcase, reason in non_subtest_skip:
+                        self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
+
 
 def pytest_configure(config: pytest.Config) -> None:
     TestCaseFunction.addSubTest = _addSubTest  # type: ignore[attr-defined]
     TestCaseFunction.failfast = False  # type: ignore[attr-defined]
+    # This condition is to prevent `TestCaseFunction._originaladdSkip` being assigned again in a subprocess from a
+    # parent python process where `addSkip` is already `_addSkip`. A such case is when running tests in
+    # `test_subtests.py` where `pytester.runpytest` is used. Without this guard condition, `_originaladdSkip` is
+    # assigned to `_addSkip` which is wrong as well as causing an infinite recursion in some cases.
+    if not hasattr(TestCaseFunction, "_originaladdSkip"):
+        TestCaseFunction._originaladdSkip = TestCaseFunction.addSkip  # type: ignore[attr-defined]
+    TestCaseFunction.addSkip = _addSkip  # type: ignore[method-assign]
 
     # Hack (#86): the terminal does not know about the "subtests"
     # status, so it will by default turn the output to yellow.
@@ -154,6 +208,9 @@ def pytest_unconfigure() -> None:
         del TestCaseFunction.addSubTest
     if hasattr(TestCaseFunction, "failfast"):
         del TestCaseFunction.failfast
+    if hasattr(TestCaseFunction, "_originaladdSkip"):
+        TestCaseFunction.addSkip = TestCaseFunction._originaladdSkip  # type: ignore[method-assign]
+        del TestCaseFunction._originaladdSkip
 
 
 @pytest.fixture

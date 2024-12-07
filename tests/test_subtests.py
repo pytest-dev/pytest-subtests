@@ -340,6 +340,153 @@ class TestSubTest:
                 ["collected 1 item", "* 3 xfailed, 1 passed in *"]
             )
 
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
+    def test_skip_with_failure(
+        self,
+        pytester: pytest.Pytester,
+        monkeypatch: pytest.MonkeyPatch,
+        runner: Literal["unittest", "pytest-normal", "pytest-xdist"],
+    ) -> None:
+        monkeypatch.setenv("COLUMNS", "200")
+        p = pytester.makepyfile(
+            """
+            import pytest
+            from unittest import expectedFailure, TestCase, main
+
+            class T(TestCase):
+                def test_foo(self):
+                    for i in range(10):
+                        with self.subTest("custom message", i=i):
+                            if i < 4:
+                                self.skipTest(f"skip subtest i={i}")
+                            assert i < 4
+
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        if runner == "unittest":
+            result = pytester.runpython(p)
+            if sys.version_info < (3, 11):
+                result.stderr.re_match_lines(
+                    [
+                        "FAIL: test_foo \(__main__\.T\) \[custom message\] \(i=4\).*",
+                        "FAIL: test_foo \(__main__\.T\) \[custom message\] \(i=9\).*",
+                        "Ran 1 test in .*",
+                        "FAILED \(failures=6, skipped=4\)",
+                    ]
+                )
+            else:
+                result.stderr.re_match_lines(
+                    [
+                        "FAIL: test_foo \(__main__\.T\.test_foo\) \[custom message\] \(i=4\).*",
+                        "FAIL: test_foo \(__main__\.T\.test_foo\) \[custom message\] \(i=9\).*",
+                        "Ran 1 test in .*",
+                        "FAILED \(failures=6, skipped=4\)",
+                    ]
+                )
+        elif runner == "pytest-normal":
+            result = pytester.runpytest(p, "-v", "-rsf")
+            result.stdout.re_match_lines(
+                [
+                    r"test_skip_with_failure.py::T::test_foo \[custom message\] \(i=0\) SUBSKIP \(skip subtest i=0\) .*",
+                    r"test_skip_with_failure.py::T::test_foo \[custom message\] \(i=3\) SUBSKIP \(skip subtest i=3\) .*",
+                    r"test_skip_with_failure.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
+                    r"test_skip_with_failure.py::T::test_foo \[custom message\] \(i=9\) SUBFAIL .*",
+                    "test_skip_with_failure.py::T::test_foo PASSED .*",
+                    "[custom message] (i=0) SUBSKIP [1] test_skip_with_failure.py:5: skip subtest i=0",
+                    "[custom message] (i=0) SUBSKIP [1] test_skip_with_failure.py:5: skip subtest i=3",
+                    "[custom message] (i=4) SUBFAIL test_skip_with_failure.py::T::test_foo - AssertionError: assert 4 < 4",
+                    "[custom message] (i=9) SUBFAIL test_skip_with_failure.py::T::test_foo - AssertionError: assert 9 < 4",
+                    ".* 6 failed, 1 passed, 4 skipped in .*",
+                ]
+            )
+        else:
+            pytest.xfail("Not producing the expected results (#5)")
+            result = pytester.runpytest(p)  # type:ignore[unreachable]
+            result.stdout.fnmatch_lines(
+                ["collected 1 item", "* 3 skipped, 1 passed in *"]
+            )
+
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
+    def test_skip_with_failure_and_non_subskip(
+        self,
+        pytester: pytest.Pytester,
+        monkeypatch: pytest.MonkeyPatch,
+        runner: Literal["unittest", "pytest-normal", "pytest-xdist"],
+    ) -> None:
+        monkeypatch.setenv("COLUMNS", "200")
+        p = pytester.makepyfile(
+            """
+            import pytest
+            from unittest import expectedFailure, TestCase, main
+
+            class T(TestCase):
+                def test_foo(self):
+                    for i in range(10):
+                        with self.subTest("custom message", i=i):
+                            if i < 4:
+                                self.skipTest(f"skip subtest i={i}")
+                            assert i < 4
+                    self.skipTest(f"skip the test")
+
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        if runner == "unittest":
+            result = pytester.runpython(p)
+            if sys.version_info < (3, 11):
+                result.stderr.re_match_lines(
+                    [
+                        "FAIL: test_foo \(__main__\.T\) \[custom message\] \(i=4\).*",
+                        "FAIL: test_foo \(__main__\.T\) \[custom message\] \(i=9\).*",
+                        "Ran 1 test in .*",
+                        "FAILED \(failures=6, skipped=5\)",
+                    ]
+                )
+            else:
+                result.stderr.re_match_lines(
+                    [
+                        "FAIL: test_foo \(__main__\.T\.test_foo\) \[custom message\] \(i=4\).*",
+                        "FAIL: test_foo \(__main__\.T\.test_foo\) \[custom message\] \(i=9\).*",
+                        "Ran 1 test in .*",
+                        "FAILED \(failures=6, skipped=5\)",
+                    ]
+                )
+        elif runner == "pytest-normal":
+            result = pytester.runpytest(p, "-v", "-rsf")
+            # The `(i=0)` is not correct but it's given by pytest `TerminalReporter` without `--no-fold-skipped`
+            result.stdout.re_match_lines(
+                [
+                    r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
+                    r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\)",
+                    r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip subtest i=3",
+                    r"\[custom message\] \(i=0\) SUBSKIP \[1\] test_skip_with_failure_and_non_subskip.py:5: skip the test",
+                    r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo",
+                    r".* 6 failed, 5 skipped in .*",
+                ]
+            )
+            # check with `--no-fold-skipped` (which gives the correct information)
+            if sys.version_info >= (3, 10):
+                result = pytester.runpytest(p, "-v", "--no-fold-skipped", "-rsf")
+                result.stdout.re_match_lines(
+                    [
+                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo \[custom message\] \(i=4\) SUBFAIL .*",
+                        r"test_skip_with_failure_and_non_subskip.py::T::test_foo SKIPPED \(skip the test\).*",
+                        r"\[custom message\] \(i=3\) SUBSKIP test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip subtest i=3",
+                        r"SKIPPED test_skip_with_failure_and_non_subskip.py::T::test_foo - Skipped: skip the test",
+                        r"\[custom message\] \(i=4\) SUBFAIL test_skip_with_failure_and_non_subskip.py::T::test_foo",
+                        r".* 6 failed, 5 skipped in .*",
+                    ]
+                )
+        else:
+            pytest.xfail("Not producing the expected results (#5)")
+            result = pytester.runpytest(p)  # type:ignore[unreachable]
+            result.stdout.fnmatch_lines(
+                ["collected 1 item", "* 3 skipped, 1 passed in *"]
+            )
+
 
 class TestCapture:
     def create_file(self, pytester: pytest.Pytester) -> None:
