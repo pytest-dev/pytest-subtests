@@ -410,7 +410,7 @@ class TestSubTest:
     def test_skip_with_failure_and_non_subskip(
         self,
         pytester: pytest.Pytester,
-            monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
         runner: Literal["unittest", "pytest-normal", "pytest-xdist"],
     ) -> None:
         monkeypatch.setenv("COLUMNS", "80")
