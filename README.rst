@@ -147,11 +147,7 @@ unittest subTest() example
 
 Contributing
 ------------
-Contributions are very welcome. Tests can be run with `tox`_:
-
-.. code-block::
-
-    tox -e py37
+Contributions are very welcome. Tests can be run with `tox`_.
 
 License
 -------
