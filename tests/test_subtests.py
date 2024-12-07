@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
 IS_PY311 = sys.version_info[:2] >= (3, 11)
-
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
-else:
-    from typing import Literal
 
 
 @pytest.mark.parametrize("mode", ["normal", "xdist"])

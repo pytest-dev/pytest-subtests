@@ -4,9 +4,13 @@ CHANGELOG
 UNRELEASED
 ----------
 
-* Fix output when using ``TestCase.skipTest`` (`#169`_).
+* Add support for Python 3.13.
 
-* Fix ``pytest`` requirement to ``>=7.3`` (`#159`_).
+* Dropped support for EOL Python 3.8.
+
+* Fixed output when using ``TestCase.skipTest`` (`#169`_).
+
+* Fixed ``pytest`` requirement to ``>=7.3`` (`#159`_).
 
 .. _#159: https://github.com/pytest-dev/pytest-subtests/issues/159
 .. _#169: https://github.com/pytest-dev/pytest-subtests/pull/169
