@@ -13,7 +13,6 @@ from typing import Iterator
 from typing import Mapping
 from typing import TYPE_CHECKING
 from unittest import TestCase
-from unittest.case import _SubTest  # type: ignore[attr-defined]
 
 import attr
 import pluggy
@@ -100,6 +99,8 @@ class SubTestReport(TestReport):  # type: ignore[misc]
 
 
 def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
+    from unittest.case import _SubTest  # type: ignore[attr-defined]
+
     if isinstance(testcase, _SubTest):
         self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
         if self._excinfo is not None:
@@ -146,6 +147,8 @@ def _addSubTest(
 
         # For python < 3.11: add non-subtest skips once all subtest failures are processed by # `_addSubTest`.
         if sys.version_info < (3, 11):
+            from unittest.case import _SubTest  # type: ignore[attr-defined]
+
             non_subtest_skip = [
                 (x, y)
                 for x, y in self.instance._outcome.skipped
