@@ -105,8 +105,10 @@ def _addSkip(self: TestCaseFunction, testcase: TestCase, reason: str) -> None:
             self.addSubTest(testcase.test_case, testcase, exc_info)  # type: ignore[attr-defined]
     else:
         # For python < 3.11: the non-subtest skips have to be added by `_originaladdSkip` only after all subtest
-        # failures are processed by `_addSubTest`.
-        if sys.version_info < (3, 11):
+        # failures are processed by `_addSubTest`. (`self.instance._outcome` has no attribute `skipped/errors` anymore.)
+        # For python < 3.11, we also need to check if `self.instance._outcome` is `None` (this happens if the test
+        # class/method is decorated with `unittest.skip`).
+        if sys.version_info < (3, 11) and self.instance._outcome is not None:
             subtest_errors = [
                 x
                 for x, y in self.instance._outcome.errors
