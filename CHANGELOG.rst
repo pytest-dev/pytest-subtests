@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.14.1
+------
+
+*2024-12-09*
+
+* Fix ``self.instance._outcome`` is ``None`` case in #173 (`#174`_).
+
+.. _#174: https://github.com/pytest-dev/pytest-subtests/pull/174
+
 0.14.0
 ------
 
