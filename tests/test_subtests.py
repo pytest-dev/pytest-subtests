@@ -336,7 +336,6 @@ class TestSubTest:
                 ["collected 1 item", "* 3 xfailed, 1 passed in *"]
             )
 
-    # A test for https://github.com/pytest-dev/pytest-subtests/issues/173
     @pytest.mark.parametrize("runner", ["pytest-normal"])
     def test_only_original_skip_is_called(
         self,
@@ -344,6 +343,7 @@ class TestSubTest:
         monkeypatch: pytest.MonkeyPatch,
         runner: Literal["pytest-normal"],
     ) -> None:
+        """Regression test for #173."""
         monkeypatch.setenv("COLUMNS", "200")
         p = pytester.makepyfile(
             """
