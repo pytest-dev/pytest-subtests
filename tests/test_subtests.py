@@ -360,7 +360,9 @@ class TestSubTest:
         """
         )
         result = pytester.runpytest(p, "-v", "-rsf")
-        result.stdout.fnmatch_lines(["SKIPPED [1] test_only_original_skip_is_called.py:6: skip this test"])
+        result.stdout.fnmatch_lines(
+            ["SKIPPED [1] test_only_original_skip_is_called.py:6: skip this test"]
+        )
 
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_skip_with_failure(
