@@ -336,6 +336,34 @@ class TestSubTest:
                 ["collected 1 item", "* 3 xfailed, 1 passed in *"]
             )
 
+    @pytest.mark.parametrize("runner", ["pytest-normal"])
+    def test_only_original_skip_is_called(
+        self,
+        pytester: pytest.Pytester,
+        monkeypatch: pytest.MonkeyPatch,
+        runner: Literal["pytest-normal"],
+    ) -> None:
+        """Regression test for #173."""
+        monkeypatch.setenv("COLUMNS", "200")
+        p = pytester.makepyfile(
+            """
+            import unittest
+            from unittest import TestCase, main
+
+            @unittest.skip("skip this test")
+            class T(unittest.TestCase):
+                def test_foo(self):
+                    assert 1 == 2
+
+            if __name__ == '__main__':
+                main()
+        """
+        )
+        result = pytester.runpytest(p, "-v", "-rsf")
+        result.stdout.fnmatch_lines(
+            ["SKIPPED [1] test_only_original_skip_is_called.py:6: skip this test"]
+        )
+
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_skip_with_failure(
         self,
