@@ -491,8 +491,8 @@ class TestSubTest:
                     r".* 6 failed, 5 skipped in .*",
                 ]
             )
-            # check with `--no-fold-skipped` (which gives the correct information)
-            if sys.version_info >= (3, 10):
+            # Check with `--no-fold-skipped` (which gives the correct information).
+            if sys.version_info >= (3, 10) and pytest.version_tuple[:2] >= (8, 3):
                 result = pytester.runpytest(p, "-v", "--no-fold-skipped", "-rsf")
                 result.stdout.re_match_lines(
                     [
