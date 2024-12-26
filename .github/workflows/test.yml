@@ -33,6 +33,11 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
         python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        tox_env: ["py"]
+        include:
+          - os: "ubuntu-latest"
+            python: "3.9"
+            tox_env: "pytest7-py"
 
     steps:
     - uses: actions/checkout@v4
@@ -56,4 +61,4 @@ jobs:
     - name: Test
       shell: bash
       run: |
-        tox run -e py --installpkg `find dist/*.tar.gz`
+        tox run -e ${{ matrix.tox_env }} --installpkg `find dist/*.tar.gz`
