@@ -216,7 +216,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 2 failed, 1 passed in *",
+                    "* 2 failed, 1 passed, 3 subtests passed in *",
                 ]
             )
 
@@ -267,7 +267,7 @@ class TestSubTest:
                     "E  * AssertionError: 1 != 0",
                     "* T.test_foo [[]custom[]] (i=3) *",
                     "E  * AssertionError: 1 != 0",
-                    "* 2 failed, 1 passed in *",
+                    "* 2 failed, 1 passed, 3 subtests passed in *",
                 ]
             )
 

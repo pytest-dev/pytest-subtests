@@ -126,47 +126,46 @@ def _addSubTest(
     test: TestCase,
     exc_info: tuple[type[BaseException], BaseException, TracebackType] | None,
 ) -> None:
-    if exc_info is not None:
-        msg = test._message if isinstance(test._message, str) else None  # type: ignore[attr-defined]
-        call_info = make_call_info(
-            ExceptionInfo(exc_info, _ispytest=True),
-            start=0,
-            stop=0,
-            duration=0,
-            when="call",
+    msg = test._message if isinstance(test._message, str) else None  # type: ignore[attr-defined]
+    call_info = make_call_info(
+        ExceptionInfo(exc_info, _ispytest=True) if exc_info else None,
+        start=0,
+        stop=0,
+        duration=0,
+        when="call",
+    )
+    report = self.ihook.pytest_runtest_makereport(item=self, call=call_info)
+    sub_report = SubTestReport._from_test_report(report)
+    sub_report.context = SubTestContext(msg, dict(test.params))  # type: ignore[attr-defined]
+    self.ihook.pytest_runtest_logreport(report=sub_report)
+    if check_interactive_exception(call_info, sub_report):
+        self.ihook.pytest_exception_interact(
+            node=self, call=call_info, report=sub_report
         )
-        report = self.ihook.pytest_runtest_makereport(item=self, call=call_info)
-        sub_report = SubTestReport._from_test_report(report)
-        sub_report.context = SubTestContext(msg, dict(test.params))  # type: ignore[attr-defined]
-        self.ihook.pytest_runtest_logreport(report=sub_report)
-        if check_interactive_exception(call_info, sub_report):
-            self.ihook.pytest_exception_interact(
-                node=self, call=call_info, report=sub_report
-            )
 
-        # For python < 3.11: add non-subtest skips once all subtest failures are processed by # `_addSubTest`.
-        if sys.version_info < (3, 11):
-            from unittest.case import _SubTest  # type: ignore[attr-defined]
+    # For python < 3.11: add non-subtest skips once all subtest failures are processed by # `_addSubTest`.
+    if sys.version_info < (3, 11):
+        from unittest.case import _SubTest  # type: ignore[attr-defined]
 
-            non_subtest_skip = [
-                (x, y)
-                for x, y in self.instance._outcome.skipped
-                if not isinstance(x, _SubTest)
-            ]
-            subtest_errors = [
-                (x, y)
-                for x, y in self.instance._outcome.errors
-                if isinstance(x, _SubTest) and y is not None
-            ]
-            # Check if we have non-subtest skips: if there are also sub failures, non-subtest skips are not treated in
-            # `_addSubTest` and have to be added using `_originaladdSkip` after all subtest failures are processed.
-            if len(non_subtest_skip) > 0 and len(subtest_errors) > 0:
-                # Make sure we have processed the last subtest failure
-                last_subset_error = subtest_errors[-1]
-                if exc_info is last_subset_error[-1]:
-                    # Add non-subtest skips (as they could not be treated in `_addSkip`)
-                    for testcase, reason in non_subtest_skip:
-                        self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
+        non_subtest_skip = [
+            (x, y)
+            for x, y in self.instance._outcome.skipped
+            if not isinstance(x, _SubTest)
+        ]
+        subtest_errors = [
+            (x, y)
+            for x, y in self.instance._outcome.errors
+            if isinstance(x, _SubTest) and y is not None
+        ]
+        # Check if we have non-subtest skips: if there are also sub failures, non-subtest skips are not treated in
+        # `_addSubTest` and have to be added using `_originaladdSkip` after all subtest failures are processed.
+        if len(non_subtest_skip) > 0 and len(subtest_errors) > 0:
+            # Make sure we have processed the last subtest failure
+            last_subset_error = subtest_errors[-1]
+            if exc_info is last_subset_error[-1]:
+                # Add non-subtest skips (as they could not be treated in `_addSkip`)
+                for testcase, reason in non_subtest_skip:
+                    self._originaladdSkip(testcase, reason)  # type: ignore[attr-defined]
 
 
 def pytest_configure(config: pytest.Config) -> None:
