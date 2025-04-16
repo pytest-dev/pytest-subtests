@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+UNRELEASED
+----------
+
+*UNRELEASED*
+
+* Print output "dots" for successful unittest subtests (`#164`_).
+
+.. _#164: https://github.com/pytest-dev/pytest-subtests/issues/164
+
 0.14.1
 ------
 
