@@ -110,7 +110,7 @@ class TestFixture:
         expected_lines += ["* 1 passed, 3 skipped, 2 subtests passed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
-    def test_xfail(
+    def test_xfail_direct_call(
         self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]
     ) -> None:
         pytester.makepyfile(
@@ -131,7 +131,30 @@ class TestFixture:
             pytest.importorskip("xdist")
             result = pytester.runpytest("-n1")
             expected_lines = ["1 worker [1 item]"]
-        expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
+        expected_lines += ["* 1 passed, 2 subtests passed, 3 subtests xfailed in *"]
+        result.stdout.fnmatch_lines(expected_lines)
+
+    def test_xfail_marker(
+        self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]
+    ) -> None:
+        pytester.makepyfile(
+            """
+            import pytest
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i, xfail=pytest.mark.xfail('test')):
+                        assert i % 2 == 0
+        """
+        )
+        if mode == "normal":
+            result = pytester.runpytest()
+            expected_lines = ["collected 1 item"]
+        else:
+            assert mode == "xdist"
+            pytest.importorskip("xdist")
+            result = pytester.runpytest("-n1")
+            expected_lines = ["1 worker [1 item]"]
+        expected_lines += ["* 1 passed, 3 subtests xpassed, 2 subtests xfailed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
     def test_typing_exported(
