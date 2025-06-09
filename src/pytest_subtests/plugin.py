@@ -234,11 +234,14 @@ class SubTests:
     def test(
         self,
         msg: str | None = None,
+        xfail: pytest.Mark | None = None,
         **kwargs: Any,
     ) -> _SubTestContextManager:
         """
         Context manager for subtests, capturing exceptions raised inside the subtest scope and handling
         them through the pytest machinery.
+
+        If xfail mark is provided, the subtest will be marked as xfailed if the subtest fails.
 
         Usage:
 
@@ -253,6 +256,7 @@ class SubTests:
             kwargs,
             request=self.request,
             suspend_capture_ctx=self.suspend_capture_ctx,
+            xfail=xfail,
         )
 
 
@@ -272,6 +276,7 @@ class _SubTestContextManager:
     kwargs: dict[str, Any]
     suspend_capture_ctx: Callable[[], ContextManager]
     request: SubRequest
+    xfail: pytest.Mark | None
 
     def __enter__(self) -> None:
         __tracebackhide__ = True
@@ -315,6 +320,13 @@ class _SubTestContextManager:
         )
         sub_report = SubTestReport._from_test_report(report)
         sub_report.context = SubTestContext(self.msg, self.kwargs.copy())
+
+        # Check for xfail mark
+        if self.xfail is not None:
+            # In pytest, xfail is reported as skipped and xpass is reported as passed
+            sub_report.outcome = "skipped" if exc_type is not None else "passed"
+            # This lets pytest know we xfailed and is also used to display reason in the summary
+            sub_report.wasxfail = self.xfail.args[0]
 
         self._captured_output.update_report(sub_report)
         self._captured_logs.update_report(sub_report)
@@ -457,12 +469,21 @@ def pytest_report_teststatus(
     if report.when != "call" or not isinstance(report, SubTestReport):
         return None
 
-    if hasattr(report, "wasxfail"):
-        return None
-
     outcome = report.outcome
     description = report.sub_test_description()
-    if report.passed:
+
+    if hasattr(report, "wasxfail"):
+        if outcome == "skipped":
+            category = "xfailed"
+            short = "y"  # x letter is used for regular xfail, y for subtest xfail
+            status = "SUBXFAIL"
+        elif outcome == "passed":
+            category = "xpassed"
+            short = "Y"  # X letter is used for regular xpass, Y for subtest xpass
+            status = "SUBXPASS"
+        short = "" if config.option.no_subtests_shortletter else short
+        return f"subtests {category}", short, f"{description} {status}"
+    elif report.passed:
         short = "" if config.option.no_subtests_shortletter else ","
         return f"subtests {outcome}", short, f"{description} SUBPASS"
     elif report.skipped:
