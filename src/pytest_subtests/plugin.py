@@ -457,12 +457,26 @@ def pytest_report_teststatus(
     if report.when != "call" or not isinstance(report, SubTestReport):
         return None
 
-    if hasattr(report, "wasxfail"):
-        return None
-
     outcome = report.outcome
     description = report.sub_test_description()
-    if report.passed:
+
+    if hasattr(report, "wasxfail"):
+        if outcome == "skipped":
+            category = "xfailed"
+            short = "y"  # x letter is used for regular xfail, y for subtest xfail
+            status = "SUBXFAIL"
+        elif outcome == "passed":
+            category = "xpassed"
+            short = "Y"  # X letter is used for regular xpass, Y for subtest xpass
+            status = "SUBXPASS"
+        else:
+            # This should not normally happen, unless some plugin is setting wasxfail without
+            # the correct outcome. Pytest expects the call outcome to be either skipped or passed in case of xfail.
+            # Let's pass this report to the next hook.
+            return None
+        short = "" if config.option.no_subtests_shortletter else short
+        return f"subtests {category}", short, f"{description} {status}"
+    elif report.passed:
         short = "" if config.option.no_subtests_shortletter else ","
         return f"subtests {outcome}", short, f"{description} SUBPASS"
     elif report.skipped:

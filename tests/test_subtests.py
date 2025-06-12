@@ -131,7 +131,7 @@ class TestFixture:
             pytest.importorskip("xdist")
             result = pytester.runpytest("-n1")
             expected_lines = ["1 worker [1 item]"]
-        expected_lines += ["* 1 passed, 3 xfailed, 2 subtests passed in *"]
+        expected_lines += ["* 1 passed, 2 subtests passed, 3 subtests xfailed in *"]
         result.stdout.fnmatch_lines(expected_lines)
 
     def test_typing_exported(
