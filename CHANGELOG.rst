@@ -7,8 +7,10 @@ UNRELEASED
 *UNRELEASED*
 
 * Print output "dots" for successful unittest subtests (`#164`_).
+* Improved reporting in case subtests raise `pytest.xfail` (`#194`_).
 
 .. _#164: https://github.com/pytest-dev/pytest-subtests/issues/164
+.. _#194: https://github.com/pytest-dev/pytest-subtests/pull/194
 
 0.14.1
 ------
