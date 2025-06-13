@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-UNRELEASED
-----------
+0.14.2
+------
 
-*UNRELEASED*
+*2025-06-13*
 
 * Print output "dots" for successful unittest subtests (`#164`_).
 * Improved reporting in case subtests raise `pytest.xfail` (`#194`_).
