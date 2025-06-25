@@ -4,6 +4,8 @@ CHANGELOG
 0.14.3 (UNRELEASED)
 -------------------
 
+*XXXX-XX-XX*
+
 * Added experimental ``--no-subtest-reports`` CLI option. This disables
   subtests output unless it's a failed subtest. (`#198`_)
 
