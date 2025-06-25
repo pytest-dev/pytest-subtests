@@ -51,7 +51,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         dest="no_subtests_reports",
         default=False,
-        help="Disable subtest output unless it's a failed subtest (EXPERIMENTAL)",
+        help="Disables subtest output unless it's a failed subtest (EXPERIMENTAL)",
     )
 
 
