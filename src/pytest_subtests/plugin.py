@@ -469,7 +469,7 @@ def pytest_report_teststatus(
     no_output = ("", "", "")
 
     if hasattr(report, "wasxfail"):
-        if config.option.no_subtests_reports and category != "xfailed":
+        if config.option.no_subtests_reports and outcome != "skipped":
             return no_output
         elif outcome == "skipped":
             category = "xfailed"
