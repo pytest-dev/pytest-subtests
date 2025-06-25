@@ -484,7 +484,6 @@ def pytest_report_teststatus(
             # the correct outcome. Pytest expects the call outcome to be either skipped or passed in case of xfail.
             # Let's pass this report to the next hook.
             return None
-
         short = "" if config.option.no_subtests_shortletter else short
         return f"subtests {category}", short, f"{description} {status}"
 
