@@ -46,6 +46,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Disables subtest output 'dots' in non-verbose mode (EXPERIMENTAL)",
     )
+    group.addoption(
+        "--no-subtests-reports",
+        action="store_true",
+        dest="no_subtests_reports",
+        default=False,
+        help="Disable subtest output unless it's a failed subtest (EXPERIMENTAL)",
+    )
+
+
 
 
 @attr.s
@@ -459,9 +468,12 @@ def pytest_report_teststatus(
 
     outcome = report.outcome
     description = report.sub_test_description()
+    no_output = ("", "", "")
 
     if hasattr(report, "wasxfail"):
-        if outcome == "skipped":
+        if config.option.no_subtests_reports and category != "xfailed":
+            return no_output
+        elif outcome == "skipped":
             category = "xfailed"
             short = "y"  # x letter is used for regular xfail, y for subtest xfail
             status = "SUBXFAIL"
@@ -474,8 +486,12 @@ def pytest_report_teststatus(
             # the correct outcome. Pytest expects the call outcome to be either skipped or passed in case of xfail.
             # Let's pass this report to the next hook.
             return None
+
         short = "" if config.option.no_subtests_shortletter else short
         return f"subtests {category}", short, f"{description} {status}"
+
+    if config.option.no_subtests_reports and outcome != "failed":
+        return no_output
     elif report.passed:
         short = "" if config.option.no_subtests_shortletter else ","
         return f"subtests {outcome}", short, f"{description} SUBPASS"
