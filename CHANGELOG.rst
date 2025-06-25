@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.14.3 (UNRELEASED)
+-------------------
+
+*XXXX-XX-XX*
+
+* Added experimental ``--no-subtest-reports`` CLI option. This disables
+  subtests output unless it's a failed subtest. (`#198`_)
+
+.. _#198: https://github.com/pytest-dev/pytest-subtests/pull/198
+
 0.14.2
 ------
 
