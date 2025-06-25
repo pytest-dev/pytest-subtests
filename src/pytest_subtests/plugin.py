@@ -55,8 +55,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-
-
 @attr.s
 class SubTestContext:
     msg: str | None = attr.ib()
