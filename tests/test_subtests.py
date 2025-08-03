@@ -156,7 +156,7 @@ class TestFixture:
         expected_lines += ["* 1 passed *"]
         result.stdout.fnmatch_lines(expected_lines)
 
-    def test_no_subtests_reports(self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]):
+    def test_no_subtests_reports(self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]) -> None:
         pytester.makepyfile(
             """
             import pytest
