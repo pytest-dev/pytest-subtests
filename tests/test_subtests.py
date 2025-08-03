@@ -156,6 +156,25 @@ class TestFixture:
         expected_lines += ["* 1 passed *"]
         result.stdout.fnmatch_lines(expected_lines)
 
+    def test_no_subtests_reports(self, pytester: pytest.Pytester, mode: Literal["normal", "xdist"]):
+        pytester.makepyfile(
+            """
+            import pytest
+
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i):
+                        pass
+        """
+        )
+        expected_lines = [
+            "*collected 1 item*",
+            "*test_no_subtests_reports.py::test_foo PASSED*",
+        ]
+
+        result = pytester.runpytest("-v", "--no-subtests-reports")
+        result.stdout.fnmatch_lines(expected_lines)
+
 
 class TestSubTest:
     """
