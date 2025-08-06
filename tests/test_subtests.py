@@ -272,6 +272,76 @@ class TestSubTest:
             )
 
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
+    def test_serialization(
+        self,
+        pytester: pytest.Pytester,
+        runner: Literal["unittest", "pytest-normal", "pytest-xdist"],
+    ) -> None:
+        p = pytester.makepyfile(
+            """
+            import sys
+            from unittest import TestCase, main
+            from pathlib import Path
+            
+            if sys.version_info[:2] < (3, 11):
+                from enum import Enum
+                
+                class MyEnum(str, Enum):
+                    CUSTOM = "custom"
+                    
+                    def __str__(self) -> str:
+                        return self.value
+            else:
+                from enum import StrEnum
+                
+                class MyEnum(StrEnum):
+                    CUSTOM = "custom"
+
+            class T(TestCase):
+
+                def test_foo(self):
+                    for i in range(5):
+                        with self.subTest(msg=MyEnum.CUSTOM, i=i, p=Path("test")):
+                            self.assertEqual(i % 2, 0)
+
+            if __name__ == '__main__':
+                main()
+            """
+        )
+        suffix = ".test_foo" if IS_PY311 else ""
+        if runner == "unittest":
+            result = pytester.run(sys.executable, p)
+            result.stderr.fnmatch_lines(
+                [
+                    f"FAIL: test_foo (__main__.T{suffix}) [[]custom[]] (i=1, p=*)",
+                    "AssertionError: 1 != 0",
+                    f"FAIL: test_foo (__main__.T{suffix}) [[]custom[]] (i=3, p=*)",
+                    "AssertionError: 1 != 0",
+                    "Ran 1 test in *",
+                    "FAILED (failures=2)",
+                ]
+            )
+        else:
+            if runner == "pytest-normal":
+                result = pytester.runpytest(p)
+                expected_lines = ["collected 1 item"]
+            else:
+                assert runner == "pytest-xdist"
+                pytest.importorskip("xdist")
+                result = pytester.runpytest(p, "-n1")
+                expected_lines = ["1 worker [1 item]"]
+            result.stdout.fnmatch_lines(
+                    expected_lines
+                    + [
+                        "* T.test_foo [[]custom[]] (i=1, p=*) *",
+                        "E  * AssertionError: 1 != 0",
+                        "* T.test_foo [[]custom[]] (i=3, p=*) *",
+                        "E  * AssertionError: 1 != 0",
+                        "* 2 failed, 1 passed, 3 subtests passed in *",
+                    ]
+            )
+
+    @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
     def test_skip(
         self,
         pytester: pytest.Pytester,
