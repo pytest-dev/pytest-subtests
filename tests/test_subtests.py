@@ -282,18 +282,18 @@ class TestSubTest:
             import sys
             from unittest import TestCase, main
             from pathlib import Path
-            
+
             if sys.version_info[:2] < (3, 11):
                 from enum import Enum
-                
+
                 class MyEnum(str, Enum):
                     CUSTOM = "custom"
-                    
+
                     def __str__(self) -> str:
                         return self.value
             else:
                 from enum import StrEnum
-                
+
                 class MyEnum(StrEnum):
                     CUSTOM = "custom"
 
@@ -331,14 +331,14 @@ class TestSubTest:
                 result = pytester.runpytest(p, "-n1")
                 expected_lines = ["1 worker [1 item]"]
             result.stdout.fnmatch_lines(
-                    expected_lines
-                    + [
-                        "* T.test_foo [[]custom[]] (i=1, p=*) *",
-                        "E  * AssertionError: 1 != 0",
-                        "* T.test_foo [[]custom[]] (i=3, p=*) *",
-                        "E  * AssertionError: 1 != 0",
-                        "* 2 failed, 1 passed, 3 subtests passed in *",
-                    ]
+                expected_lines
+                + [
+                    "* T.test_foo [[]custom[]] (i=1, p=*) *",
+                    "E  * AssertionError: 1 != 0",
+                    "* T.test_foo [[]custom[]] (i=3, p=*) *",
+                    "E  * AssertionError: 1 != 0",
+                    "* 2 failed, 1 passed, 3 subtests passed in *",
+                ]
             )
 
     @pytest.mark.parametrize("runner", ["unittest", "pytest-normal", "pytest-xdist"])
