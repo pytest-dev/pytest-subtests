@@ -169,13 +169,48 @@ class TestFixture:
                         pass
         """
         )
-        expected_lines = [
-            "*collected 1 item*",
-            "*test_no_subtests_reports.py::test_foo PASSED*",
-        ]
+        # Without `--no-subtests-reports`, subtests are reported normally.
+        result = pytester.runpytest("-v")
+        result.stdout.fnmatch_lines(
+            [
+                "*collected 1 item*",
+                "test_no_subtests_reports.py::test_foo * (i=0) SUBPASS*",
+                "*test_no_subtests_reports.py::test_foo PASSED*",
+                "* 1 passed, 5 subtests passed in*",
+            ]
+        )
 
+        # With `--no-subtests-reports`, passing subtests are no longer reported.
         result = pytester.runpytest("-v", "--no-subtests-reports")
-        result.stdout.fnmatch_lines(expected_lines)
+        result.stdout.fnmatch_lines(
+            [
+                "*collected 1 item*",
+                "*test_no_subtests_reports.py::test_foo PASSED*",
+                "* 1 passed in*",
+            ]
+        )
+        result.stdout.no_fnmatch_line("*SUBPASS*")
+
+        # Rewrite the test file so the tests fail. Even with the flag, failed subtests are still reported.
+        pytester.makepyfile(
+            """
+            import pytest
+
+            def test_foo(subtests):
+                for i in range(5):
+                    with subtests.test(msg="custom", i=i):
+                        assert False
+        """
+        )
+        result = pytester.runpytest("-v", "--no-subtests-reports")
+        result.stdout.fnmatch_lines(
+            [
+                "*collected 1 item*",
+                "test_no_subtests_reports.py::test_foo * (i=0) SUBFAIL*",
+                "*test_no_subtests_reports.py::test_foo PASSED*",
+                "* 5 failed, 1 passed in*",
+            ]
+        )
 
 
 class TestSubTest:
