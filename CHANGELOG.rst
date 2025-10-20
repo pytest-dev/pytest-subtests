@@ -1,10 +1,10 @@
 CHANGELOG
 =========
 
-0.14.3 (UNRELEASED)
--------------------
+0.15.0
+------
 
-*XXXX-XX-XX*
+*2025-10-20*
 
 * Added experimental ``--no-subtest-reports`` CLI option. This disables
   subtests output unless it's a failed subtest. (`#198`_)
