@@ -5,6 +5,8 @@ import time
 from contextlib import contextmanager
 from contextlib import ExitStack
 from contextlib import nullcontext
+from enum import Enum
+from pathlib import Path
 from typing import Any
 from typing import Callable
 from typing import ContextManager
@@ -84,8 +86,14 @@ class SubTestReport(TestReport):  # type: ignore[misc]
     def _to_json(self) -> dict:
         data = super()._to_json()
         del data["context"]
+
+        def serialize(inst: type, field: attr.Attribute, value: Any) -> Any:
+            if isinstance(value, (Enum, Path)):
+                return str(value)
+            return value
+
         data["_report_type"] = "SubTestReport"
-        data["_subtest.context"] = attr.asdict(self.context)
+        data["_subtest.context"] = attr.asdict(self.context, value_serializer=serialize)
         return data
 
     @classmethod
