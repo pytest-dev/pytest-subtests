@@ -6,7 +6,7 @@ CHANGELOG
 
 *2025-10-20*
 
-* Added experimental ``--no-subtest-reports`` CLI option. This disables
+* Added experimental ``--no-subtests-reports`` CLI option. This disables
   subtests output unless it's a failed subtest. (`#198`_)
 
 .. _#198: https://github.com/pytest-dev/pytest-subtests/pull/198
