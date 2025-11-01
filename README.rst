@@ -21,9 +21,10 @@ unittest ``subTest()`` support and ``subtests`` fixture.
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
 
-----
+IMPORTANT
+---------
 
-This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
+This plugin has been integrated directly into pytest ``9.0``, so the plugin itself will no longer be maintained and the repository will be archived.
 
 
 Features
@@ -169,3 +170,7 @@ If you encounter any problems, please `file an issue`_ along with a detailed des
 .. _`tox`: https://tox.readthedocs.io/en/latest/
 .. _`pip`: https://pypi.org/project/pip/
 .. _`PyPI`: https://pypi.org/project/pytest-subtests/
+
+----
+
+This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
